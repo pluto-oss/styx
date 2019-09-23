@@ -28,13 +28,18 @@ module.exports.Bot = class Bot {
 		);");
 		this.db.query("CREATE TABLE IF NOT EXISTS `warns` (\
 			admin_id bigint unsigned not null, \
-			warn_id bigint unsigned not null, \
+			warn_msg_id bigint unsigned not null, \
 			last_msg_id bigint unsigned, \
 			warned_id bigint unsigned not null, \
 			INDEX(warned_id), \
-			FOREIGN KEY (warn_id) REFERENCES stored_messages (message_id) ON DELETE NO ACTION ON UPDATE NO ACTION, \
+			FOREIGN KEY (warn_msg_id) REFERENCES stored_messages (message_id) ON DELETE NO ACTION ON UPDATE NO ACTION, \
 			FOREIGN KEY (last_msg_id) REFERENCES stored_messages (message_id) ON DELETE NO ACTION ON UPDATE NO ACTION \
 		);");
+		this.db.query("CREATE TABLE IF NOT EXISTS `role_permissions` ( \
+			role bigint unsigned not null, \
+			permission varchar(16) not null, \
+			INDEX(role) \
+		)")
 		this.db.query("CREATE TABLE IF NOT EXISTS `previous_roles` (\
 			user bigint unsigned not null, \
 			role bigint unsigned not null, \
@@ -46,10 +51,37 @@ module.exports.Bot = class Bot {
 
 		this.commandList = {}
 
-		for (let cmd of ["test"]) {
+		for (let cmd of ["test", "allow", "jail"]) {
 			let {Command} = require(`./cmds/${cmd}`);
 			this.commandList[cmd] = Command;
 		}
+
+	}
+
+	hasPermission(user, perm) {
+		return new Promise((res, rej) => {
+			if (user.id === this.owner) {
+				res(true);
+				return;
+			}
+
+			let roles = [];
+			for (let role of user.roles.array()) {
+				roles.push(role.id);
+			}
+
+			roles.push(perm);
+
+			this.db.query("SELECT 1 FROM role_permissions WHERE role in (" + roles.map(() => "?").slice(0, roles.length - 1).join(", ") + ") AND permission = ? LIMIT 1", roles, (err, results) => {
+				if (err) {
+					rej(err);
+					return;
+				}
+
+				res(results.length > 0);
+			});
+
+		})
 	}
 
 	onmemberjoin(member) {
@@ -98,7 +130,6 @@ module.exports.Bot = class Bot {
 		if (msg.author.bot)
 			return;
 		if (!msg.guild) {
-			msg.reply("im gay");
 			return;
 		}
 
@@ -125,7 +156,7 @@ module.exports.Bot = class Bot {
 		}
 
 		if (msg.content.toLowerCase().indexOf("styx ") === 0)
-			this.runCommand(msg);
+			this.runCommand(msg).catch(console.error);
 	}
 
 	skipWhitespace(str, idx) {
@@ -138,7 +169,29 @@ module.exports.Bot = class Bot {
 		return str.length;
 	}
 
-	runCommand(msg) {
+	acquireArgument(str, idx) {
+		let inside = str.charAt(idx);
+		if (inside !== '"' && inside !== "'")
+			inside = null;
+		else
+			idx++;
+
+		let start = idx;
+
+		for (let ends = start; ends < str.length; ends++) {
+			let chr = str.charAt(ends);
+			if (inside == chr) {
+				return [str.slice(start, ends), ends + 1];
+			}
+			else if (!inside && this.skipWhitespace(str, ends) !== ends) {
+				return [str.slice(start, ends), ends]
+			}
+		}
+
+		return null;
+	}
+
+	async runCommand(msg) {
 		let limit = this.limiter[msg.author.id];
 		if (limit && limit > Date.now()) 
 			return;
@@ -165,15 +218,21 @@ module.exports.Bot = class Bot {
 			return;
 		}
 
+		if (!await this.hasPermission(msg.guild.members.get(msg.author.id), cmd)) {
+			msg.channel.send("You don't have permission.");
+			this.limiter[msg.author.id] = Date.now() + 1000 * 5;
+			return;
+		}
+
 		let args = Command.arguments();
 		let new_args = [];
 		try {
 			for (cur_idx; cur_idx < text.length; cur_idx = this.skipWhitespace(text, cur_idx)) {
-				let a = new args[new_args.length](this.client, text, cur_idx);
+				let a = new args[new_args.length](this, text, cur_idx, msg);
 				if (!a.length)
 					break;
 				cur_idx += a.length;
-				new_args.push(a);
+				new_args.push(a.data);
 			}
 		}
 		catch (e) {
@@ -182,7 +241,6 @@ module.exports.Bot = class Bot {
 			console.error(e);
 			return;
 		}
-
 
 		try {
 			new Command(this, msg, new_args);
@@ -210,6 +268,10 @@ module.exports.Bot = class Bot {
 
 	setOwner(owner) {
 		this.owner = owner;
+	}
+
+	setJail(role) {
+		this.jail = role;
 	}
 }
 

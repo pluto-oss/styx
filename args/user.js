@@ -1,13 +1,9 @@
-const {MessageMentions} = require("discord.js");
-
 module.exports.User = class User {
-	constructor(bot, text, ind) {
-		console.log(text);
+	constructor(bot, text, ind, msg) {
 		let regex = /<@!?([0-9]+)>/g;
 		regex.lastIndex = ind;
 		let match = regex.exec(text);
-		console.log(match);
-		console.log(regex);
+
 		if (!match) {
 			regex = /([0-9]+)/g;
 			regex.lastIndex = ind;
@@ -17,7 +13,20 @@ module.exports.User = class User {
 		if (match) {
 			this.length = match[0].length;
 			this.data = match[1];
-			this.valid = bot.users.has(this.data);
+		}
+		if (!this.data || !msg.guild.members.has(this.data)) {
+			let name_data = bot.acquireArgument(text, ind);
+			if (!name_data)
+				return;
+
+			name_data[0] = name_data[0].toLowerCase();
+
+			let items = msg.guild.members.array().filter(x => x.user.username.toLowerCase().indexOf(name_data[0]) !== -1 || x.displayName.toLowerCase().indexOf(name_data[0]) !== -1);
+
+			if (items.length === 1) {
+				this.data = items[0].id;
+				this.length = name_data[1] - ind;
+			}
 		}
 	}
 }

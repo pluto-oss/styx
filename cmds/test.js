@@ -1,5 +1,6 @@
 const {Text} = require("../args/text");
 const {User} = require("../args/user");
+const {Role} = require("../args/role");
 const {ArgumentError} = require("../errors");
 
 module.exports.Command = class TestCommand {
@@ -7,10 +8,10 @@ module.exports.Command = class TestCommand {
 		if (args.length !== 2) 
 			throw new ArgumentError(this.constructor.arguments(), args.length);
 
-		msg.channel.send(`player: <@${args[0].data}> rest: \`${args[1].data}\``);
+		msg.channel.send(`role: ${args[0].name} rest: \`${args[1]}\``);
 	}
 
 	static arguments() {
-		return [User, Text];
+		return [Role, Text];
 	}
 };
