@@ -1,0 +1,12 @@
+{
+	"discord": {
+		"key": "<<bot token>>",
+		"owner": "<<yourid>>"
+	},
+	"mysql": {
+		"database": "<database>",
+		"host": "<host>",
+		"user": "<user>",
+		"password": "<password>"
+	}
+}
