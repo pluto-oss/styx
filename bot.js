@@ -8,6 +8,8 @@ module.exports.Bot = class Bot {
 		});
 		this.client.on("ready", this.onready.bind(this));
 		this.client.on("message", this.onmessage.bind(this));
+		this.client.on("guildMemberRemove", this.onmemberleave.bind(this));
+		this.client.on("guildMemberAdd", this.onmemberjoin.bind(this));
 		this.db.query("CREATE TABLE IF NOT EXISTS `stored_messages` (\
 			guild_id bigint unsigned not null, \
 			channel_id bigint unsigned not null, \
@@ -33,6 +35,12 @@ module.exports.Bot = class Bot {
 			FOREIGN KEY (warn_id) REFERENCES stored_messages (message_id) ON DELETE NO ACTION ON UPDATE NO ACTION, \
 			FOREIGN KEY (last_msg_id) REFERENCES stored_messages (message_id) ON DELETE NO ACTION ON UPDATE NO ACTION \
 		);");
+		this.db.query("CREATE TABLE IF NOT EXISTS `previous_roles` (\
+			user bigint unsigned not null, \
+			role bigint unsigned not null, \
+			guild bigint unsigned not null, \
+			INDEX(user) \
+		);");
 
 		this.limiter = {};
 
@@ -41,6 +49,48 @@ module.exports.Bot = class Bot {
 		for (let cmd of ["test"]) {
 			let {Command} = require(`./cmds/${cmd}`);
 			this.commandList[cmd] = Command;
+		}
+	}
+
+	onmemberjoin(member) {
+		this.db.getConnection((_, c) => {
+			c.beginTransaction(err => {
+				if (err)
+					throw err;
+
+				c.query("SELECT cast(role as char) as role FROM previous_roles WHERE user = ? AND guild = ?", [member.id, member.guild.id], (err, results) => {
+					if (err)
+						throw err;
+					for (let data of results) {
+						if (member.guild.roles.has(data.role)) {
+							let role = member.guild.roles.get(data.role);
+							member.addRole(data.role, "previous role").catch(console.error).then(() => {
+								member.send("I've readded the " + role.name + " role to you.");
+							});
+						}
+					}
+
+					c.query("DELETE FROM previous_roles WHERE user = ? AND guild = ?", [member.id, member.guild.id], () => {
+						c.commit(err => {
+							if (err)
+								return c.rollback(() => {
+									throw err;
+								})
+							
+							this.db.releaseConnection(c);
+						});
+					});
+				});
+			});
+		})
+	}
+
+	onmemberleave(member) {
+		for (let role of member.roles.array()) {
+			if (role.managed || role.name === "@everyone")
+				continue;
+
+			this.db.query("INSERT INTO `previous_roles` (user, role, guild) VALUES (?, ?, ?);", [member.id, role.id, member.guild.id]);
 		}
 	}
 
