@@ -38,4 +38,8 @@ module.exports.Command = class PermissionCommand {
 	static arguments() {
 		return [Role, Text];
 	}
+
+	static help() {
+		return "Gives or denies permissions to a specified command to a group.";
+	}
 };

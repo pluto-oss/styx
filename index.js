@@ -21,3 +21,5 @@ if ("owner" in config.discord)
 	bot.setOwner(config.discord.owner);
 if ("jail" in config.discord) 
 	bot.setJail(config.discord.jail);
+if ("logs" in config.discord)
+	bot.setLog(config.discord.logs);

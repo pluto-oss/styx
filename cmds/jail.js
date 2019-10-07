@@ -28,6 +28,7 @@ module.exports.Command = class JailCommand {
 		else {
 			user.addRole(bot.jail, `${args[1]} - ${msg.author.displayName} (${msg.author.id})`).then(() => {
 				msg.channel.send(`${user} was jailed`);
+				user.send(`You were jailed on ${msg.guild.name} by ${msg.author} with the reason "${args[1]}".`);
 			}).catch(() => {
 				msg.channel.send(`${user} couldn't be jailed.`);
 			});
@@ -36,5 +37,9 @@ module.exports.Command = class JailCommand {
 
 	static arguments() {
 		return [User, Text];
+	}
+
+	static help() {
+		return "Gives/removes the Jail role on a player.";
 	}
 };
