@@ -1,5 +1,7 @@
 const {Client, RichEmbed} = require("discord.js");
 const fs = require("fs");
+const express = require("express");
+const bdy = require("body-parser");
 
 module.exports.Bot = class Bot {
 	constructor(db) {
@@ -51,6 +53,16 @@ module.exports.Bot = class Bot {
 		this.limiter = {};
 
 		this.commandList = {};
+
+		this.app = express();
+		this.app.use(bdy.urlencoded({ extended: false }));
+		this.app.use(bdy.json());
+
+		this.app.listen(3000, function() {
+			console.log("Server started on Port 3000");
+		});
+
+		this.app.post("/requests/github", this.githubRequest.bind(this));
 
 		const files = fs.readdirSync("./cmds");
 		for (let file of files) {
@@ -109,7 +121,7 @@ module.exports.Bot = class Bot {
 							if (err)
 								return c.rollback(() => {
 									throw err;
-								})
+								});
 							
 							this.db.releaseConnection(c);
 						});
@@ -297,7 +309,44 @@ module.exports.Bot = class Bot {
 		this.client.guilds.get("595542444737822730").channels.get(this.logChannel).send(logMessage);
 	}
 
+	githubRequest(req, res) {
+		res.status(200).send("Success");
+		const type = req.header("X-GitHub-Event");
+		console.log("Github Request: "+type);
+		const body = req.body;
+		let emb = this.createEmbed();
+		console.log(body);
+		emb.setAuthor(body["sender"]["login"], body["sender"]["avatar_url"], body["sender"]["html_url"]);
+		if (type === "push") {
+			emb.setTitle(`[${body["repository"]["full_name"]}] ${body["commits"].length} new commit${body["commits"].length === 1 ? "" : "s"}`);
+			emb.setURL(body["compare"]);
+			let commits = "";
+			body["commits"].forEach(commit => {
+				commits = commits + `[\`${commit["id"].substr(0,7)}\`](${commit["url"]}) ${commit["message"]}\n`;
+			});
+			emb.setDescription(commits);
+		} else if (type === "issues") {
+			emb.setURL(body["issue"]["html_url"]);
+			if (body["action"] === "opened") {
+				emb.setTitle(`Issue Opened: #${body["issue"]["number"]} ${body["issue"]["title"]}`);
+				emb.setDescription(body["issue"]["body"]);
+			} else if (body["action"] === "edited") {
+				emb.setTitle(`Issue Edited: #${body["issue"]["number"]} ${body["issue"]["title"]}`);
+				emb.setDescription(body["issue"]["body"]);
+			} else if (body["action"] === "deleted") {
+				emb.setTitle(`Issue Deleted: #${body["issue"]["number"]} ${body["issue"]["title"]}`);
+			} else {
+				return;
+			}
+		} else {
+			emb.addField("Unhandled Event",type);
+			this.client.guilds.get("595542444737822730").channels.get(this.logChannel).send(emb);
+			return;
+		}
+		this.client.guilds.get("595542444737822730").channels.get(this.logChannel).send(emb);
+	}
+
 	createEmbed() {
 		return new RichEmbed();
 	}
-}
+};
