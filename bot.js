@@ -320,30 +320,19 @@ module.exports.Bot = class Bot {
 		if (type === "push") {
 			emb.setTitle(`[${body["repository"]["full_name"]}] ${body["commits"].length} new commit${body["commits"].length === 1 ? "" : "s"}`);
 			emb.setURL(body["compare"]);
+			emb.setTimestamp();
+			emb.setFooter("branch: "+body["ref"].substr(11,body["ref"].length));
 			let commits = "";
 			body["commits"].forEach(commit => {
-				commits = commits + `[\`${commit["id"].substr(0,7)}\`](${commit["url"]}) ${commit["message"]}\n`;
+				if (commit["message"].charAt(0) == ":") {
+					commits = commits + `[\`${commit["id"].substr(0,7)}\`](${commit["url"]}) This message has been marked as hidden.\n`;
+				} else {
+					commits = commits + `[\`${commit["id"].substr(0, 7)}\`](${commit["url"]}) ${commit["message"]}\n`;
+				}
 			});
 			emb.setDescription(commits);
-		} else if (type === "issues") {
-			emb.setURL(body["issue"]["html_url"]);
-			if (body["action"] === "opened") {
-				emb.setTitle(`Issue Opened: #${body["issue"]["number"]} ${body["issue"]["title"]}`);
-				emb.setDescription(body["issue"]["body"]);
-			} else if (body["action"] === "edited") {
-				emb.setTitle(`Issue Edited: #${body["issue"]["number"]} ${body["issue"]["title"]}`);
-				emb.setDescription(body["issue"]["body"]);
-			} else if (body["action"] === "deleted") {
-				emb.setTitle(`Issue Deleted: #${body["issue"]["number"]} ${body["issue"]["title"]}`);
-			} else {
-				return;
-			}
-		} else {
-			emb.addField("Unhandled Event",type);
-			this.client.guilds.get("595542444737822730").channels.get(this.logChannel).send(emb);
-			return;
+			this.client.guilds.get("595542444737822730").channels.get("609026158566309898").send(emb);
 		}
-		this.client.guilds.get("595542444737822730").channels.get(this.logChannel).send(emb);
 	}
 
 	createEmbed() {
