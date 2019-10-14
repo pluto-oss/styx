@@ -319,6 +319,11 @@ module.exports.Bot = class Bot {
 		emb.setAuthor(body["sender"]["login"], body["sender"]["avatar_url"], body["sender"]["html_url"]);
 		if (type === "push") {
 			emb.setTitle(`[${body["repository"]["full_name"]}] ${body["commits"].length} new commit${body["commits"].length === 1 ? "" : "s"}`);
+			if (body["repository"]["full_name"] == "meepen/pluto-inv") {
+				emb.setColor("#9930e9");
+			} else if (body["repository"]["full_name"] == "meepen/styx") {
+				emb.setColor("#4d8881");
+			}
 			emb.setURL(body["compare"]);
 			emb.setTimestamp();
 			emb.setFooter("branch: "+body["ref"].substr(11,body["ref"].length));
