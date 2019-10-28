@@ -40,10 +40,10 @@ bot.app.listen(3000, function() {
 	console.log("Server started on Port 3000");
 });
 
-bot.app.post("/requests/github", bot.githubRequest.bind(this));
-bot.app.post("/requests/deploybot", bot.deploymentHook.bind(this));
+bot.app.post("/requests/github", bot.githubRequest.bind(bot));
+bot.app.post("/requests/deploybot", bot.deploymentHook.bind(bot));
 
-bot.app.post("/api/discord", bot.discordMessage.bind(this));
+bot.app.post("/api/discord", bot.discordMessage.bind(bot));
 
 bot.app.get("/verify", (req, res) => {
 	res.status(200).sendFile("web/verify.html", { root: __dirname });
