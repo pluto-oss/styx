@@ -1,7 +1,6 @@
 const {Client, RichEmbed} = require("discord.js");
 const fs = require("fs");
-const express = require("express");
-const bdy = require("body-parser");
+
 
 module.exports.Bot = class Bot {
 	constructor(db) {
@@ -13,6 +12,10 @@ module.exports.Bot = class Bot {
 		this.client.on("message", this.onmessage.bind(this));
 		this.client.on("guildMemberRemove", this.onmemberleave.bind(this));
 		this.client.on("guildMemberAdd", this.onmemberjoin.bind(this));
+		this.db.query("CREATE TABLE IF NOT EXISTS `styx_settings` (\
+			setting varchar(20) not null,\
+			value varchar(20) not null\
+		);");
 		this.db.query("CREATE TABLE IF NOT EXISTS `stored_messages` (\
 			guild_id bigint unsigned not null, \
 			channel_id bigint unsigned not null, \
@@ -53,16 +56,6 @@ module.exports.Bot = class Bot {
 		this.limiter = {};
 
 		this.commandList = {};
-
-		this.app = express();
-		this.app.use(bdy.urlencoded({ extended: false }));
-		this.app.use(bdy.json());
-
-		this.app.listen(3000, function() {
-			console.log("Server started on Port 3000");
-		});
-
-		this.app.post("/requests/github", this.githubRequest.bind(this));
 
 		const files = fs.readdirSync("./cmds");
 		for (let file of files) {
@@ -312,12 +305,11 @@ module.exports.Bot = class Bot {
 	githubRequest(req, res) {
 		res.status(200).send("Success");
 		const type = req.header("X-GitHub-Event");
-		console.log("Github Request: "+type);
-		const body = req.body;
-		let emb = this.createEmbed();
-		console.log(body);
-		emb.setAuthor(body["sender"]["login"], body["sender"]["avatar_url"], body["sender"]["html_url"]);
 		if (type === "push") {
+			const body = req.body;
+			console.log(body);
+			let emb = this.createEmbed();
+			emb.setAuthor(body["sender"]["login"], body["sender"]["avatar_url"], body["sender"]["html_url"]);
 			emb.setTitle(`[${body["repository"]["full_name"]}] ${body["commits"].length} new commit${body["commits"].length === 1 ? "" : "s"}`);
 			if (body["repository"]["full_name"] == "meepen/pluto-inv") {
 				emb.setColor("#9930e9");
@@ -338,6 +330,29 @@ module.exports.Bot = class Bot {
 			emb.setDescription(commits);
 			this.client.guilds.get("595542444737822730").channels.get("609026158566309898").send(emb);
 		}
+	}
+
+	deploymentHook(req, res) {
+		res.status(200).send("Success");
+		console.log("========== DeployBot Message ==========");
+		console.log(req.body);
+		const body = req.body;
+		let commit = body["revision"].substr(0, 7);
+		let message = body["message"];
+		let target = body["server"];
+		let emb = this.createEmbed();
+		emb.setColor("#80CEE1");
+		emb.setAuthor("DeployBot", "https://deploybot.com/images/saas-prod-deploybot.png");
+		emb.setTitle("Deployment Complete");
+		emb.setDescription(`${body["repository"]}/${body["environment"]} deployed to ${body["server"]}\n${body["comment"]} - ${body["author_name"]}`);
+		emb.setTimestamp();
+		this.client.guilds.get("595542444737822730").channels.get("634572018729222164").send(emb);
+	}
+
+	discordMessage(req, res) {
+		res.status(200).send("Success");
+		console.log("--------- Message Received ---------");
+		console.log(req.body);
 	}
 
 	createEmbed() {
