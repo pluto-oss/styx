@@ -36,7 +36,7 @@ bot.app = express();
 bot.app.use(bdy.urlencoded({ extended: false }));
 bot.app.use(bdy.json());
 
-bot.app.listen(3000, function() {
+bot.app.listen(3000, "0.0.0.0", function() {
 	console.log("Server started on Port 3000");
 });
 
