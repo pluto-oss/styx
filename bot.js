@@ -344,9 +344,9 @@ module.exports.Bot = class Bot {
 		emb.setColor("#80CEE1");
 		emb.setAuthor("DeployBot", "https://deploybot.com/images/saas-prod-deploybot.png");
 		emb.setTitle("Deployment Complete");
-		emb.setDescription(`${body["repository"]}/${body["environment"]} deployed to ${body["server"]}\n${body["comment"]} - ${body["author_name"]}`);
+		emb.setDescription(`[${body["repository"]}/${body["environment"]}](https://github.com/Meepen/${body["repository"]}) deployed to __${body["server"]}__\n\`${body["comment"]}\` - ${body["author_name"]}`);
 		emb.setTimestamp();
-		this.client.guilds.get("595542444737822730").channels.get("634572018729222164").send(emb);
+		this.client.guilds.get("290669947267317762").channels.get("652311350399467533").send(emb);
 	}
 
 	discordMessage(req, res) {

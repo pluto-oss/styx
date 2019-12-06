@@ -45,10 +45,6 @@ bot.app.post("/requests/deploybot", bot.deploymentHook.bind(bot));
 
 bot.app.post("/api/discord", bot.discordMessage.bind(bot));
 
-bot.app.get("/verify", (req, res) => {
-	res.status(200).sendFile("web/verify.html", { root: __dirname });
-});
-
 bot.app.get("*", (req, res) => {
 	res.redirect("https://pluto.gg");
 });
