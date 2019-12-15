@@ -350,12 +350,17 @@ module.exports.Bot = class Bot {
 	}
 
 	discordMessage(req, res) {
-		const channel = req.params.channel;
-		res.status(200).send("Success");
-		console.log("--------- Message Received ---------");
-		console.log("channel: "+channel);
-		console.log("embed:");
-		console.log(req.body.embed);
+		let ch = this.client.guilds.get("595542444737822730").channels.get(req.params.channel);
+		if (ch === undefined) {
+			res.status(400).send("bad channel");
+		} else {
+			res.status(200).send("Success");
+			if ("content" in req.body) {
+				ch.send(req.body.content, {embed: req.body.embed});
+			} else {
+				ch.send({embed: req.body.embed});
+			}
+		}
 	}
 
 	createEmbed() {
