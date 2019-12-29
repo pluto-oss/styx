@@ -46,6 +46,8 @@ bot.app.post("/requests/deploybot", bot.deploymentHook.bind(bot));
 
 bot.app.post("/api/discord/:channel", bot.discordMessage.bind(bot));
 
+bot.app.post("/sync/:user", bot.syncUser.bind(bot));
+
 bot.app.get("*", (req, res) => {
 	console.log("GET");
 	res.redirect("https://pluto.gg");

@@ -1,6 +1,6 @@
 const {Client, RichEmbed} = require("discord.js");
 const fs = require("fs");
-
+const request = require("request");
 
 module.exports.Bot = class Bot {
 	constructor(db) {
@@ -360,6 +360,29 @@ module.exports.Bot = class Bot {
 			} else {
 				ch.send({embed: req.body.embed});
 			}
+		}
+	}
+
+	syncUser(req, res) {
+		const users = this.client.guilds.get("595542444737822730").members;
+		let userid = req.params.user;
+		if (users.has(userid)) {
+			let user = users.get(userid);
+			let apikey = "";
+			request(`https://${apikey}:@pluto.gg/api/discord/snowflake/${user}`, (error, res, body) => {
+				if (!error && res.statusCode === 200) {
+					let ids = JSON.parse(body);
+					let role = ids["role"];
+					if (role !== -1) {
+						if (!user.roles.has(role)) {
+							user.addRole(role);
+						}
+					}
+					res.status(200).send("Success");
+				}
+			});
+		} else {
+			res.status(400).send("bad user");
 		}
 	}
 
