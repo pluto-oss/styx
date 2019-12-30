@@ -364,15 +364,23 @@ module.exports.Bot = class Bot {
 	}
 
 	syncUser(req, res) {
+		console.log("Sync user");
 		const users = this.client.guilds.get("595542444737822730").members;
-		let userid = req.params.user;
+		let userid = req.params.user.toString();
+		console.log("has ",users.has(userid));
 		if (users.has(userid)) {
 			let user = users.get(userid);
-			let apikey = "";
-			request(`https://${apikey}:@pluto.gg/api/discord/snowflake/${user}`, (error, res, body) => {
-				if (!error && res.statusCode === 200) {
+			let apikey = "aa704e83baf21a363f577ce7f8d944a6";
+			request(`https://pluto.gg/api/discord/snowflake/${userid}`, {
+				auth: {
+					"user": apikey
+				}
+			},
+			(error, resp, body) => {
+				if (!error && resp.statusCode === 200) {
 					let ids = JSON.parse(body);
 					let role = ids["role"];
+					console.log("role:" +role);
 					if (role !== -1) {
 						if (!user.roles.has(role)) {
 							user.addRole(role);
