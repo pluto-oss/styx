@@ -1,9 +1,27 @@
 const {Text} = require("../args/text");
 const {ArgumentError} = require("../errors");
 
-module.exports.Command = class SQLCommand {
+module.exports.Command = class JSCommand {
     constructor(bot, msg, args) {
-        eval(args[0]);
+        let fn = new Function("bot", "msg", args[0]);
+
+	if (!fn) {
+		msg.reply("Couldn't create function");
+	}
+
+	try {
+		let res = fn(bot, msg);
+
+		if (res) {
+			msg.reply("result: " + res.toString());
+		}
+		else {
+			msg.reply("success");
+		}
+	}
+	catch (e) {
+		msg.reply("error: " + e.toString() + "\n" + e.stack);
+	}
     }
 
     static arguments() {

@@ -115,7 +115,7 @@ module.exports.Bot = class Bot {
 								return c.rollback(() => {
 									throw err;
 								});
-							
+
 							this.db.releaseConnection(c);
 						});
 					});
@@ -143,7 +143,7 @@ module.exports.Bot = class Bot {
 			return;
 		}
 
-		this.db.execute(
+		/*this.db.execute(
 			"INSERT INTO `stored_messages` (guild_id, channel_id, message_id, sender_id, text) values (?, ?, ?, ?, ?)",
 			[
 				msg.guild.id,
@@ -163,7 +163,7 @@ module.exports.Bot = class Bot {
 					att.url
 				]
 			);
-		}
+		}*/
 
 		if (msg.content.toLowerCase().indexOf("styx ") === 0)
 			this.runCommand(msg).catch(console.error);
@@ -203,21 +203,27 @@ module.exports.Bot = class Bot {
 
 	async runCommand(msg) {
 		let limit = this.limiter[msg.author.id];
-		if (limit && limit > Date.now()) 
+		if (limit && limit > Date.now())
 			return;
 
 		let text = msg.content;
 
 		let cur_idx = this.skipWhitespace(text, 5);
+		let start = cur_idx;
 
 		let cmd;
 
-		for (let i = cur_idx; i < text.length; i++) {
+		for (let i = start; i < text.length; i++) {
 			cur_idx = this.skipWhitespace(text, i);
 			if (i !== cur_idx) {
-				cmd = text.slice(5, i);
+				cmd = text.slice(start, i);
 				break;
 			}
+		}
+
+		if (!cmd) {
+			cmd = text.slice(start);
+			cur_idx = text.length;
 		}
 
 		let Command = this.commandList[cmd];
@@ -238,7 +244,10 @@ module.exports.Bot = class Bot {
 		let new_args = [];
 		try {
 			for (cur_idx; cur_idx < text.length; cur_idx = this.skipWhitespace(text, cur_idx)) {
-				let a = new args[new_args.length](this, text, cur_idx, msg);
+				let Constructor = args[new_args.length];
+				if (!Constructor)
+					break;
+				let a = new Constructor(this, text, cur_idx, msg);
 				if (!a.length)
 					break;
 				cur_idx += a.length;
@@ -383,7 +392,9 @@ module.exports.Bot = class Bot {
 					console.log("role:" +role);
 					if (role !== -1) {
 						if (!user.roles.has(role)) {
-							user.addRole(role);
+							user.addRole(role).then(() => {user.send(`Added the role ${user.roles.get(role).name} to you.`);});
+						} else {
+							user.send(`You already had the role ${user.roles.get(role).name}, but your account is synced!`)
 						}
 					}
 					res.status(200).send("Success");

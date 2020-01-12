@@ -29,8 +29,9 @@ module.exports.Command = class JailCommand {
 			user.addRole(bot.jail, `${args[1]} - ${msg.author.displayName} (${msg.author.id})`).then(() => {
 				msg.channel.send(`${user} was jailed`);
 				user.send(`You were jailed on ${msg.guild.name} by ${msg.author} with the reason "${args[1]}".`);
-			}).catch(() => {
+			}).catch((e) => {
 				msg.channel.send(`${user} couldn't be jailed.`);
+				console.error(e);
 			});
 		}
 	}
