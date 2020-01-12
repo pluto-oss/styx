@@ -1,6 +1,6 @@
 module.exports.Command = class RollCommand {
     constructor(bot,msg) {
-        msg.reply("3");
+        msg.reply(["heads","tails"][Math.floor(Math.random()*2)]);
     }
 
     static arguments() {
