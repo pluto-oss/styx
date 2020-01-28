@@ -2,6 +2,7 @@
 
 const mysql = require("mysql2");
 const config = require("./config");
+const CronJob = require("cron").CronJob;
 
 const {Bot} = require("./bot");
 
@@ -18,12 +19,19 @@ const pools = mysql.createPool({
 
 const bot = new Bot(pools);
 bot.login(config.discord.key);
+
 if ("owner" in config.discord)
 	bot.setOwner(config.discord.owner);
 if ("jail" in config.discord)
 	bot.setJail(config.discord.jail);
 if ("logs" in config.discord)
 	bot.setLog(config.discord.logs);
+
+const job = new CronJob("0 0 * * * *", () => {
+	console.log("cron trigger");
+	bot.updateNitros();
+});
+job.start();
 
 // WEB FUNCTIONS \\
 

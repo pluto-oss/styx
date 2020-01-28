@@ -1,6 +1,7 @@
 const {Client, RichEmbed} = require("discord.js");
 const fs = require("fs");
 const request = require("request");
+const moment = require("moment");
 
 module.exports.Bot = class Bot {
 	constructor(db) {
@@ -52,6 +53,12 @@ module.exports.Bot = class Bot {
 			guild bigint unsigned not null, \
 			INDEX(user) \
 		);");
+		this.db.query("CREATE TABLE IF NOT EXISTS `nitro` (\
+			discordid bigint unsigned not null, \
+			first_boost timestamp not null, \
+			boosting_since timestamp null, \
+			PRIMARY KEY (discordid) \
+		);");
 
 		this.limiter = {};
 
@@ -79,7 +86,7 @@ module.exports.Bot = class Bot {
 
 			roles.push(perm);
 
-			this.db.query("SELECT 1 FROM role_permissions WHERE role in (" + roles.map(() => "?").slice(0, roles.length - 1).join(", ") + ") AND permission = ? LIMIT 1", roles, (err, results) => {
+			this.db.query(`SELECT 1 FROM role_permissions WHERE role in (${roles.map(() => "?").slice(0, roles.length - 1).join(", ")}) AND permission = ? LIMIT 1`, roles, (err, results) => {
 				if (err) {
 					rej(err);
 					return;
@@ -403,6 +410,39 @@ module.exports.Bot = class Bot {
 		} else {
 			res.status(400).send("bad user");
 		}
+	}
+
+	updateNitros() {
+		console.log("NITRO UPDATE STARTED");
+		const pluto = this.client.guilds.get("595542444737822730");
+		const boost = "608829202258591775";
+
+		console.log("REMOVING");
+		this.db.query("SELECT * FROM nitro;", (err, nitros, fields) => {
+			if (err) throw err;
+			for (let i = 0; i < nitros.length; ++i) {
+				let member = pluto.members.get(nitros[i].toString());
+				try {
+					console.log(member);
+				} catch (err) { }
+				if (member === undefined || member.premiumSinceTimestamp === null) {
+					console.log("REMOVING MEMBER: ", nitros[i]);
+					this.db.query("UPDATE nitro SET boosting_since = NULL WHERE discordid = ?;",[nitros[i]["discordid"]], (err) => {
+						if (err) throw err;
+					});
+				}
+			}
+
+			console.log("ADDING");
+			pluto.roles.get(boost).members.forEach((member, id) => {
+				console.log("ADDING MEMBER: ", id);
+				let ts = moment(member.premiumSinceTimestamp).format("YYYY-MM-DD HH:mm:ss");
+				this.db.query("INSERT INTO nitro (discordid, first_boost, boosting_since) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE boosting_since = VALUE (boosting_since);",
+					[id, ts, ts], err => {
+						if (err) throw err;
+					});
+			});
+		});
 	}
 
 	createEmbed() {
