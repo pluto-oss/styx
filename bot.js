@@ -418,14 +418,16 @@ module.exports.Bot = class Bot {
 		const boost = "608829202258591775";
 
 		console.log("REMOVING");
-		this.db.query("SELECT * FROM nitro;", (err, nitros, fields) => {
+		this.db.query("SELECT discordid FROM nitro WHERE boosting_since IS NOT NULL;", (err, nitros, fields) => {
 			if (err) throw err;
+			console.log(nitros.length);
 			for (let i = 0; i < nitros.length; ++i) {
-				let member = pluto.members.get(nitros[i].toString());
-				try {
-					console.log(member);
-				} catch (err) { }
-				if (member === undefined || member.premiumSinceTimestamp === null) {
+				let member = pluto.members.get(nitros[i]["discordid"].toString());
+				if (member) {
+					console.log(member.nickname);
+					console.log(member.premiumSinceTimestamp);
+				}
+				if (!member || !member.premiumSinceTimestamp) {
 					console.log("REMOVING MEMBER: ", nitros[i]);
 					this.db.query("UPDATE nitro SET boosting_since = NULL WHERE discordid = ?;",[nitros[i]["discordid"]], (err) => {
 						if (err) throw err;
