@@ -441,7 +441,7 @@ module.exports.Bot = class Bot {
 		});
 	}
 
-	createEmbed() {
-		return new RichEmbed();
+	createEmbed(data) {
+		return new RichEmbed(data);
 	}
 };
