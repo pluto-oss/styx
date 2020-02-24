@@ -11,8 +11,8 @@ module.exports.Command = class UserInfoCommand {
 
 		let id = args[0];
 
-		let query = `SELECT CAST(discordid as CHAR) as discordid, CAST(I.steamid as CHAR)  as steamid, UNIX_TIMESTAMP(first_boost) as first_boost from styx.nitro N \
-			left outer join forums.discord_users D on N.discordid = D.snowflake \
+		let query = `SELECT CAST(discordid as CHAR) as discordid, CAST(I.steamid as CHAR)  as steamid, UNIX_TIMESTAMP(first_boost) as first_boost from styx.nitro N
+			left outer join forums.discord_users D on N.discordid = D.snowflake
 			left outer join forums.core_members C on C.member_id = D.forum_id
 			left outer join pluto.pluto_player_info I on I.steamid = C.steamid`;
 
@@ -41,7 +41,7 @@ module.exports.Command = class UserInfoCommand {
 				return;
 			}
 
-			msg.reply(res.discordid);
+			msg.reply(res[0].discordid);
 		});
 	}
 
