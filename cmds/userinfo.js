@@ -41,7 +41,7 @@ module.exports.Command = class UserInfoCommand {
 				return;
 			}
 
-			msg.reply(JSON.stringify(res));
+			msg.reply(res.discordid);
 		});
 	}
 
