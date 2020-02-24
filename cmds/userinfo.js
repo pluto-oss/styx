@@ -25,7 +25,7 @@ module.exports.Command = class UserInfoCommand {
 		else {
 			try {
 				let user = new User(bot, id, 0, msg);
-				query = `SELECT CAST(discordid as CHAR) as discordid, CAST(I.steamid as CHAR) as steamid, I.time_played as time_played FROM forums.discord_users D
+				query = `SELECT CAST(D.snowflake as CHAR) as discordid, CAST(I.steamid as CHAR) as steamid, I.time_played as time_played FROM forums.discord_users D
 					left outer join forums.core_members C on D.forum_id = C.member_id
 					left outer join pluto.pluto_player_info I ON C.steamid = I.steamid
 	
