@@ -1,6 +1,6 @@
 module.exports.Command = class RollCommand {
     constructor(bot,msg) {
-		msg.reply("Restarting...");
+		await msg.reply("Restarting...");
 		process.exit(0);
     }
 
