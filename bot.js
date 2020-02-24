@@ -277,8 +277,7 @@ module.exports.Bot = class Bot {
 				msg.reply(e.toSafeString());
 			}
 			else {
-				msg.reply("error!");
-				console.error(e);
+				msg.reply(`Error! ${e.message}\n${e.stack}`);
 			}
 		}
 
