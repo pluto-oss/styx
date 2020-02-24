@@ -1,7 +1,6 @@
 module.exports.Command = class RollCommand {
     constructor(bot,msg) {
-		await msg.reply("Restarting...");
-		process.exit(0);
+		msg.reply("Restarting...").then(() => {process.exit(0);});
     }
 
     static arguments() {
