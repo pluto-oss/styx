@@ -31,8 +31,8 @@ module.exports.Command = class UserInfoCommand {
 					left outer join pluto.pluto_player_info I ON C.steamid = I.steamid
 
 					where D.snowflake = ?`;
-				queryargs = [user.id];
-				how = `discordid ${user.id}`;
+				queryargs = [user.data];
+				how = `discordid ${user.data}`;
 			}
 			catch (e) {
 				msg.reply("Couldn't find a user with argument.");
