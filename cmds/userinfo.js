@@ -1,6 +1,7 @@
 const {Text} = require("../args/text");
 const {User} = require("../args/user");
 const {ArgumentError} = require("../errors");
+const {inspect} = require("util");
 
 const {ID} = require("@node-steam/id");
 
@@ -28,7 +29,7 @@ module.exports.Command = class UserInfoCommand {
 				query = `SELECT CAST(D.snowflake as CHAR) as discordid, CAST(I.steamid as CHAR) as steamid, I.time_played as time_played FROM forums.discord_users D
 					left outer join forums.core_members C on D.forum_id = C.member_id
 					left outer join pluto.pluto_player_info I ON C.steamid = I.steamid
-	
+
 					where D.snowflake = ?`;
 				queryargs = [user.id];
 				how = `discordid ${user.id}`;
@@ -46,7 +47,7 @@ module.exports.Command = class UserInfoCommand {
 				return;
 			}
 
-			msg.reply(JSON.stringify(res));
+			msg.reply(inspect(res));
 		});
 	}
 
