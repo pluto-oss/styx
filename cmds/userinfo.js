@@ -29,7 +29,7 @@ module.exports.Command = class UserInfoCommand {
 					left outer join forums.core_members C on D.forum_id = C.member_id
 					left outer join pluto.pluto_player_info I ON C.steamid = I.steamid
 	
-					where D.discordid = ?`;
+					where D.snowflake = ?`;
 				queryargs = [user.id];
 				how = `discordid ${user.id}`;
 			}
