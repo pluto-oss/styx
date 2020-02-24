@@ -40,6 +40,10 @@ module.exports.Command = class UserInfoCommand {
 			}
 		}
 
+		console.log(query);
+		console.log(queryargs);
+		console.log(how);
+
 
 		bot.db.query(`${query} LIMIT 1`, queryargs, (err, res) => {
 			if (err) {
