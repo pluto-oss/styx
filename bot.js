@@ -2,6 +2,7 @@ const {Client, RichEmbed} = require("discord.js");
 const fs = require("fs");
 const request = require("request");
 const moment = require("moment");
+const {Updater} = require("./libs/servers/updater")
 
 module.exports.Bot = class Bot {
 	constructor(db) {
@@ -286,6 +287,15 @@ module.exports.Bot = class Bot {
 
 	onready() {
 		console.log(`Logged into discord: ${this.client.user.tag}`);
+
+		if (this.serverUpdater) {
+			return;
+		}
+
+		this.client.channels.get("634573491185778688").fetchPinnedMessages().then(msgs => {
+			let msg = msgs.array()[0];
+			this.serverUpdater = new Updater(msg)
+		});
 	}
 
 	login(key) {
