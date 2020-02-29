@@ -11,7 +11,6 @@ module.exports.Command = class SteamIDCommand {
 					name: steamid.getSteamID64(),
 					url: `https://steamcommunity.com/profiles/${steamid.getSteamID64()}`
 				},
-				timestamp: new Date(),
 				fields: [
 					{
 						name: "SteamID2",

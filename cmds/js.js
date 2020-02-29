@@ -7,6 +7,7 @@ module.exports.Command = class JSCommand {
 
 		if (!fn) {
 			msg.reply("Couldn't create function");
+			return;
 		}
 
 		try {
