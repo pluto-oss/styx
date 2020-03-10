@@ -196,29 +196,34 @@ var FakeClient = module.exports.FakeClient = class FakeClient extends events.Eve
 	}
 
 	onmessage(msg, rinfo) {
-		let type = msg.readUInt32LE(0);
-		if (type == 0xFFFFFFFF) {
-			let tp = msg.readUInt8(4);
-			switch (tp) {
-				case 0x49:
-					this.emit("info", new A2S_InfoResponse(msg));
-					break;
+		try {
+			let type = msg.readUInt32LE(0);
+			if (type == 0xFFFFFFFF) {
+				let tp = msg.readUInt8(4);
+				switch (tp) {
+					case 0x49:
+						this.emit("info", new A2S_InfoResponse(msg));
+						break;
 
-				case 0x41:
-					this.emit("challenge", new A2S_GetChallengeResponse(msg));
-					break;
+					case 0x41:
+						this.emit("challenge", new A2S_GetChallengeResponse(msg));
+						break;
 
-				case 0x39:
-					this.emit("connreject", new S2C_ConnReject(msg));
-					break;
+					case 0x39:
+						this.emit("connreject", new S2C_ConnReject(msg));
+						break;
 
-				default:
-					console.log(`Unknown type: ${tp}`);
-					break;
+					default:
+						console.log(`Unknown type: ${tp}`);
+						break;
+				}
+			}
+			else {
+				console.log("Not handled: " + type);
 			}
 		}
-		else {
-			console.log("Not handled: " + type);
+		catch (e) {
+			
 		}
 	}
 
