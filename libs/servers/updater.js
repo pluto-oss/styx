@@ -6,6 +6,7 @@ const clients = [
 	"dallas.pluto.gg",
 	"dallas2.pluto.gg",
 	"london.pluto.gg",
+	"sydney.pluto.gg",
 ];
 
 module.exports.Updater = class Updater {
