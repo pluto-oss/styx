@@ -2,11 +2,7 @@ const {FakeClient} = require("../a2s/client");
 const {RichEmbed} = require("discord.js");
 
 const clients = [
-	"virginia.pluto.gg",
-	"dallas.pluto.gg",
-	"dallas2.pluto.gg",
-	"london.pluto.gg",
-	"sydney.pluto.gg",
+	"va1.pluto.gg",
 ];
 
 module.exports.Updater = class Updater {
