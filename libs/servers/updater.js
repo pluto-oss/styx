@@ -3,6 +3,7 @@ const {RichEmbed} = require("discord.js");
 
 const clients = [
 	"va1.pluto.gg",
+	"va2.pluto.gg",
 ];
 
 module.exports.Updater = class Updater {
