@@ -50,7 +50,7 @@ module.exports.Updater = class Updater {
 			});
 
 			statuses.sort((a, b) => {
-				return (a.info ? a.info.serverName : a.address) > (b.info ? b.info.serverName : b.address) ? 1 : -1
+				return a.address > b.address ? 1 : -1
 			});
 
 			embed.description = statuses.map(data => {
