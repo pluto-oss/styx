@@ -242,7 +242,7 @@ module.exports.Bot = class Bot {
 			return;
 		}
 
-		if (!await this.hasPermission(msg.guild.members.get(msg.author.id), cmd)) {
+		if (!await this.hasPermission(msg.guild.members.cache.get(msg.author.id), cmd)) {
 			msg.channel.send("You don't have permission.");
 			this.limiter[msg.author.id] = Date.now() + 1000 * 5;
 			return;
