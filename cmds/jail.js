@@ -11,22 +11,22 @@ module.exports.Command = class JailCommand {
 			msg.channel.send("This bot doesn't have a jail role set.");
 		}
 
-		if (!msg.guild.members.has(args[0])) {
+		if (!msg.guild.members.cache.has(args[0])) {
 			msg.channel.send("This server doesn't have that user.");
 			return;
 		}
 
-		let user = msg.guild.members.get(args[0]);
+		let user = msg.guild.members.cache.get(args[0]);
 
-		if (user.roles.has(bot.jail)) {
-			user.removeRole(bot.jail, `${args[1]} - ${msg.author.displayName} (${msg.author.id})`).then(() => {
+		if (user.roles.cache.has(bot.jail)) {
+			user.roles.remove(bot.jail, `${args[1]} - ${msg.author.displayName} (${msg.author.id})`).then(() => {
 				msg.channel.send(`${user} was unjailed`);
 			}).catch(() => {
 				msg.channel.send(`${user} couldn't be unjailed.`);
 			});
 		}
 		else {
-			user.addRole(bot.jail, `${args[1]} - ${msg.author.displayName} (${msg.author.id})`).then(() => {
+			user.roles.add(bot.jail, `${args[1]} - ${msg.author.displayName} (${msg.author.id})`).then(() => {
 				msg.channel.send(`${user} was jailed`);
 				user.send(`You were jailed on ${msg.guild.name} by ${msg.author} with the reason "${args[1]}".`);
 			}).catch((e) => {

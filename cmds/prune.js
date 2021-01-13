@@ -11,11 +11,11 @@ module.exports.Command = class PruneCommand {
             return;
         }
 
-        msg.channel.fetchMessages({ limit: args[0]+1 }).then(messages => messages.forEach(function(msgg) {
+        msg.channel.fetch().then(channel => channel.messages.fetch({ limit: args[0]+1 }).then(messages => messages.forEach(function(msgg) {
             console.log(msgg.content);
             msgg.delete();
-        }));
-        msg.channel.send(args[0] +" messages deleted.").then(msg => msg.delete(5000));
+        })));
+        msg.channel.send(args[0] +" messages deleted.").then(msg => msg.delete({timeout: 5000}));
     }
 
     static arguments() {

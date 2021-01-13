@@ -1,5 +1,5 @@
 const {FakeClient} = require("../a2s/client");
-const {RichEmbed} = require("discord.js");
+const {MessageEmbed} = require("discord.js");
 
 const clients = [
 	"va1.pluto.gg",
@@ -44,7 +44,7 @@ module.exports.Updater = class Updater {
 				return;
 			}
 
-			let embed = new RichEmbed({
+			let embed = new MessageEmbed({
 				timestamp: new Date(),
 				title: "Server statuses"
 			});

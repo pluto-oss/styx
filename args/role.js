@@ -8,8 +8,8 @@ module.exports.Role = class Role {
 			regex.lastIndex = ind;
 			match = regex.exec(text);
 		}
-		if (match && msg.guild.roles.has(match[1])) {
-			this.data = msg.guild.roles.get(match[1]);
+		if (match && msg.guild.roles.cache.has(match[1])) {
+			this.data = msg.guild.roles.cache.get(match[1]);
 			this.length = match[0].length;
 		}
 		else {

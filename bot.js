@@ -1,4 +1,4 @@
-const {Client, RichEmbed} = require("discord.js");
+const {Client, MessageEmbed} = require("discord.js");
 const fs = require("fs");
 const request = require("request");
 const moment = require("moment");
@@ -8,7 +8,7 @@ module.exports.Bot = class Bot {
 	constructor(db) {
 		this.db = db;
 		this.client = new Client({
-			disableEveryone: true
+			disableMentions: 'everyone'
 		});
 		this.client.on("ready", this.onready.bind(this));
 		this.client.on("message", this.onmessage.bind(this));
@@ -81,7 +81,7 @@ module.exports.Bot = class Bot {
 			}
 
 			let roles = [];
-			for (let role of user.roles.array()) {
+			for (let role of user.roles.cache.array()) {
 				roles.push(role.id);
 			}
 
@@ -110,7 +110,7 @@ module.exports.Bot = class Bot {
 						throw err;
 					for (let data of results) {
 						if (member.guild.roles.has(data.role)) {
-							let role = member.guild.roles.get(data.role);
+							let role = member.guild.roles.cache.cache.get(data.role);
 							member.addRole(data.role, "previous role").catch(console.error).then(() => {
 								member.send("I've readded the " + role.name + " role to you.");
 							});
@@ -133,7 +133,7 @@ module.exports.Bot = class Bot {
 	}
 
 	onmemberleave(member) {
-		for (let role of member.roles.array()) {
+		for (let role of member.roles.cache.array()) {
 			if (role.managed || role.name === "@everyone")
 				continue;
 
@@ -292,7 +292,8 @@ module.exports.Bot = class Bot {
 			return;
 		}
 
-		this.client.channels.get("634573491185778688").fetchPinnedMessages().then(msgs => {
+		this.client.channels.cache.get("634573491185778688").messages.fetch().then(msgs => {
+		    msgs = msgs.filter(msg => msg.pinned);
 			let msg = msgs.array()[0];
 			this.serverUpdater = new Updater(msg)
 		});
@@ -318,13 +319,13 @@ module.exports.Bot = class Bot {
 	sendLog(title, message, user, color) {
 		user = user.user || user || this.client.user;
 		color = color || "#36393E";
-		const logMessage = new RichEmbed()
+		const logMessage = new MessageEmbed()
 			.setColor(color)
 			.setTitle(title)
 			.setAuthor(user.username+"#"+user.discriminator,user.avatarURL)
 			.setDescription(message)
 			.setTimestamp();
-		this.client.guilds.get("595542444737822730").channels.get(this.logChannel).send(logMessage);
+		this.client.guilds.cache.get("595542444737822730").channels.cache.get(this.logChannel).send(logMessage);
 	}
 
 	githubRequest(req, res) {
@@ -353,7 +354,7 @@ module.exports.Bot = class Bot {
 				}
 			});
 			emb.setDescription(commits);
-			this.client.guilds.get("595542444737822730").channels.get("609026158566309898").send(emb);
+			this.client.guilds.cache.get("595542444737822730").channels.cache.get("609026158566309898").send(emb);
 		}
 	}
 
@@ -371,11 +372,11 @@ module.exports.Bot = class Bot {
 		emb.setTitle("Deployment Complete");
 		emb.setDescription(`${body["repository"]}/${body["environment"]} deployed to ${body["server"]}\n${body["comment"]} - ${body["author_name"]}`);
 		emb.setTimestamp();
-		this.client.guilds.get("595542444737822730").channels.get("634572018729222164").send(emb);
+		this.client.guilds.cache.get("595542444737822730").channels.cache.get("634572018729222164").send(emb);
 	}
 
 	discordMessage(req, res) {
-		let ch = this.client.guilds.get("595542444737822730").channels.get(req.params.channel);
+		let ch = this.client.guilds.cache.get("595542444737822730").channels.cache.get(req.params.channel);
 		if (ch === undefined) {
 			res.status(400).send("bad channel");
 		} else {
@@ -390,11 +391,11 @@ module.exports.Bot = class Bot {
 
 	syncUser(req, res) {
 		console.log("Sync user");
-		const users = this.client.guilds.get("595542444737822730").members;
+		const users = this.client.guilds.cache.get("595542444737822730").members;
 		let userid = req.params.user.toString();
 		console.log("has ",users.has(userid));
 		if (users.has(userid)) {
-			let user = users.get(userid);
+			let user = users.cache.get(userid);
 			let apikey = "aa704e83baf21a363f577ce7f8d944a6";
 			request(`https://pluto.gg/api/discord/snowflake/${userid}`, {
 				auth: {
@@ -408,9 +409,9 @@ module.exports.Bot = class Bot {
 					console.log("role:" +role);
 					if (role !== -1) {
 						if (!user.roles.has(role)) {
-							user.addRole(role).then(() => {user.send(`Added the role ${user.roles.get(role).name} to you.`);});
+							user.addRole(role).then(() => {user.send(`Added the role ${user.roles.cache.get(role).name} to you.`);});
 						} else {
-							user.send(`You already had the role ${user.roles.get(role).name}, but your account is synced!`)
+							user.send(`You already had the role ${user.roles.cache.get(role).name}, but your account is synced!`)
 						}
 					}
 					res.status(200).send("Success");
@@ -423,14 +424,14 @@ module.exports.Bot = class Bot {
 
 	updateNitros() {
 		console.log("NITRO UPDATE STARTED");
-		const pluto = this.client.guilds.get("595542444737822730");
+		const pluto = this.client.guilds.cache.get("595542444737822730");
 		const boost = "608829202258591775";
 
 		console.log("REMOVING");
 		this.db.query("SELECT CAST(discordid as CHAR) as discordid FROM nitro WHERE boosting_since IS NOT NULL;", (err, nitros, fields) => {
 			if (err) throw err;
 			for (let i = 0; i < nitros.length; ++i) {
-				let member = pluto.members.get(nitros[i].discordid);
+				let member = pluto.members.cache.get(nitros[i].discordid);
 				if (!member || !member.premiumSinceTimestamp) {
 					console.log("REMOVING MEMBER: ", nitros[i]);
 					this.db.query("UPDATE nitro SET boosting_since = NULL WHERE discordid = ?;",[nitros[i].discordid], (err) => {
@@ -440,7 +441,7 @@ module.exports.Bot = class Bot {
 			}
 
 			console.log("ADDING");
-			pluto.roles.get(boost).members.forEach((member, id) => {
+			pluto.roles.cache.get(boost).members.forEach((member, id) => {
 				console.log("ADDING MEMBER: ", id);
 				let ts = moment(member.premiumSinceTimestamp).format("YYYY-MM-DD HH:mm:ss");
 				this.db.query("INSERT INTO nitro (discordid, first_boost, boosting_since) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE boosting_since = VALUE (boosting_since);",
@@ -452,6 +453,6 @@ module.exports.Bot = class Bot {
 	}
 
 	createEmbed(data) {
-		return new RichEmbed(data);
+		return new MessageEmbed(data);
 	}
 };

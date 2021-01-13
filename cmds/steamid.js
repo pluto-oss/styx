@@ -28,7 +28,7 @@ module.exports.Command = class SteamIDCommand {
 				]
 			};
 
-			msg.channel.sendEmbed(embed);
+			msg.channel.send(embed);
 		}
 		catch (e) {
 			msg.reply("Couldn't understand that steamid." + e.message + "\n" + e.stack);
