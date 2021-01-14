@@ -295,16 +295,20 @@ module.exports.Bot = class Bot {
 		this.client.channels.fetch("634573491185778688").then(async channel => {
 			let msgs = await channel.messages.fetchPinned();
 			let msg = msgs.array()[0];
-			console.log(msg);
 			this.serverUpdater = new Updater(msg);
 		});
 
 		this.client.channels.fetch("799238992485679134").then(async channel => {
-			let collector = new ReactionCollector(await channel.messages.fetch("799239747369304066"), () => true);
+			let msg = await channel.messages.fetch("799239747369304066");
+			
+			let collector = msg.createReactionCollector(() => {
+				return true;
+			});
 			collector.on("collect", async (react, user) => {
-				let gmember = await channel.guild.members.get(user.id);
-				console.log(user, gmember);
-			})
+				let gmember = await channel.guild.members.fetch(user.id);
+				gmember.roles.add("799239379658080266");
+			});
+			collector.on("end", () => console.log("end?"));
 		});
 	}
 
@@ -342,7 +346,6 @@ module.exports.Bot = class Bot {
 		const type = req.header("X-GitHub-Event");
 		if (type === "push") {
 			const body = req.body;
-			console.log(body);
 			let emb = this.createEmbed();
 			emb.setAuthor(body["sender"]["login"], body["sender"]["avatar_url"], body["sender"]["html_url"]);
 			emb.setTitle(`[${body["repository"]["full_name"]}] ${body["commits"].length} new commit${body["commits"].length === 1 ? "" : "s"}`);

@@ -47,7 +47,6 @@ module.exports.Updater = class Updater {
 			let embed = new MessageEmbed({
 				timestamp: new Date(),
 				title: "Server statuses",
-				fields: [],
 			});
 
 			statuses.sort((a, b) => {
@@ -68,7 +67,7 @@ module.exports.Updater = class Updater {
 				await this.msg.edit("", embed);
 			}
 			catch (e) {
-				console.error(e);
+				// console.error(e);
 			}
 
 			if (!this.stop) {
