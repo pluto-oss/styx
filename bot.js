@@ -1,4 +1,4 @@
-const {Client, MessageEmbed} = require("discord.js");
+const {Client, MessageEmbed, DiscordAPIError, ReactionCollector} = require("discord.js");
 const fs = require("fs");
 const request = require("request");
 const moment = require("moment");
@@ -285,17 +285,26 @@ module.exports.Bot = class Bot {
 		// msg.reply("this is a command yes");
 	}
 
-	onready() {
+	async onready() {
 		console.log(`Logged into discord: ${this.client.user.tag}`);
 
 		if (this.serverUpdater) {
 			return;
 		}
 
-		this.client.channels.cache.get("634573491185778688").messages.fetch().then(msgs => {
-		    msgs = msgs.filter(msg => msg.pinned);
+		this.client.channels.fetch("634573491185778688").then(async channel => {
+			let msgs = await channel.messages.fetchPinned();
 			let msg = msgs.array()[0];
-			this.serverUpdater = new Updater(msg)
+			console.log(msg);
+			this.serverUpdater = new Updater(msg);
+		});
+
+		this.client.channels.fetch("799238992485679134").then(async channel => {
+			let collector = new ReactionCollector(await channel.messages.fetch("799239747369304066"), () => true);
+			collector.on("collect", async (react, user) => {
+				let gmember = await channel.guild.members.get(user.id);
+				console.log(user, gmember);
+			})
 		});
 	}
 

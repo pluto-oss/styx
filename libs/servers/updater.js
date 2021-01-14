@@ -46,7 +46,8 @@ module.exports.Updater = class Updater {
 
 			let embed = new MessageEmbed({
 				timestamp: new Date(),
-				title: "Server statuses"
+				title: "Server statuses",
+				fields: [],
 			});
 
 			statuses.sort((a, b) => {
