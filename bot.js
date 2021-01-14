@@ -311,7 +311,7 @@ module.exports.Bot = class Bot {
 					return;
 				}
 				gmember.roles.add("799239379658080266");
-				joined.send(`<@${user.id}> has joined`)
+				joined.send(`<@${user.id}> has joined [account created at ${user.createdAt.toString()}]`)
 			});
 			collector.on("end", () => console.log("end?"));
 		});
