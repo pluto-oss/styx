@@ -300,13 +300,18 @@ module.exports.Bot = class Bot {
 
 		this.client.channels.fetch("799238992485679134").then(async channel => {
 			let msg = await channel.messages.fetch("799239747369304066");
+			let joined = await this.client.channels.fetch("611449167994159134");
 			
 			let collector = msg.createReactionCollector(() => {
 				return true;
 			});
 			collector.on("collect", async (react, user) => {
 				let gmember = await channel.guild.members.fetch(user.id);
+				if (gmember.roles.cache.get("799239379658080266")) {
+					return;
+				}
 				gmember.roles.add("799239379658080266");
+				joined.send(`<@${user.id}> has joined`)
 			});
 			collector.on("end", () => console.log("end?"));
 		});
