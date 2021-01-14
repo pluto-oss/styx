@@ -3,6 +3,7 @@ const fs = require("fs");
 const request = require("request");
 const moment = require("moment");
 const {Updater} = require("./libs/servers/updater")
+const {DateTime, Duration, Interval} = require("luxon");
 
 module.exports.Bot = class Bot {
 	constructor(db) {
@@ -311,7 +312,7 @@ module.exports.Bot = class Bot {
 					return;
 				}
 				gmember.roles.add("799239379658080266");
-				joined.send(`<@${user.id}> has joined [account created at ${user.createdAt.toString()}]`)
+				joined.send(`<@${user.id}> has joined [account created at ${Math.floor(DateTime.fromJSDate(user.createdAt).diffNow().negate().as("days"))} days ago, joined ${Math.floor(DateTime.fromJSDate(gmember.joinedAt).diffNow().negate().as("days"))} days ago]`)
 			});
 			collector.on("end", () => console.log("end?"));
 		});
