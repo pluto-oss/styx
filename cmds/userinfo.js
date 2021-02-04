@@ -17,7 +17,7 @@ function level_to_exp(lvl) {
 
 function exp_to_level(exp) {
 	exp = (exp ? exp : 0) / 125 + 1
-	return (-linear + Math.sqrt(linear ^ 2 - 4 * expo * (base - exp))) / (2 * expo) + 1
+	return (-linear + Math.sqrt(Math.pow(linear, 2) - 4 * expo * (base - exp))) / (2 * expo) + 1
 }
 
 
