@@ -102,6 +102,11 @@ module.exports.Command = class UserInfoCommand {
 			}
 			res = res[0];
 
+			if (!res) {
+				msg.reply("Player not signed in through forums! Use https://pluto.gg/settings/discord/");
+				return;
+			}
+
 			let avatar = `https://cdn.discordapp.com/avatars/${res.discordid}/${(await bot.client.users.fetch(res.discordid)).avatar}.png`;
 
 			let embed = new MessageEmbed();
