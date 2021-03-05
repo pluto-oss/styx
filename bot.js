@@ -439,7 +439,7 @@ module.exports.Bot = class Bot {
 				if (!error && resp.statusCode === 200) {
 					let roleid = JSON.parse(body)["role"];
 					if (roleid != -1) {
-						let role = await guild.roles.fetch();
+						let role = await guild.roles.fetch(roleid);
 						console.log(role, JSON.parse(body)["role"])
 						await user.roles.add(role);
 						user.send(`Added the role ${role.name} to you.`);
