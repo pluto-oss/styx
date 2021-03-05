@@ -431,7 +431,7 @@ module.exports.Bot = class Bot {
 					"user": apikey
 				}
 			},
-			(error, resp, body) => {
+			async (error, resp, body) => {
 				if (!error && resp.statusCode === 200) {
 					let role = await guild.roles.fetch(JSON.parse(body)["role"]);
 					await user.roles.add(role);
