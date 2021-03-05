@@ -9,7 +9,6 @@ module.exports.Bot = class Bot {
 	constructor(db) {
 		this.db = db;
 		this.client = new Client({
-			ws: { intents: ['GUILD_MEMBERS'] },
 			disableMentions: 'everyone'
 		});
 		this.client.on("ready", this.onready.bind(this));
