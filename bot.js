@@ -422,8 +422,11 @@ module.exports.Bot = class Bot {
 
 	async syncUser(req, res) {
 		const guild = await this.client.guilds.fetch("595542444737822730");
+		const forumsrole = await guild.roles.fetch("661013927940980749");
 		let userid = req.params.user.toString();
 		let user = await guild.members.fetch(userid);
+
+		await user.roles.add(forumsrole);
 
 		if (user) {
 			let apikey = "aa704e83baf21a363f577ce7f8d944a6";
@@ -434,10 +437,14 @@ module.exports.Bot = class Bot {
 			},
 			async (error, resp, body) => {
 				if (!error && resp.statusCode === 200) {
-					let role = await guild.roles.fetch(JSON.parse(body)["role"]);
-					console.log(role, JSON.parse(body)["role"])
-					await user.roles.add(role);
-					user.send(`Added the role ${role.name} to you.`);
+					let roleid = JSON.parse(body)["role"];
+					if (roleid != -1) {
+						let role = await guild.roles.fetch();
+						console.log(role, JSON.parse(body)["role"])
+						await user.roles.add(role);
+						user.send(`Added the role ${role.name} to you.`);
+					}
+
 					res.status(200).send("Success");
 				}
 			});
