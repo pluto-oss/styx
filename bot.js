@@ -317,6 +317,7 @@ module.exports.Bot = class Bot {
 			collector.on("end", () => console.log("end?"));
 		});
 
+		/*
 		let guild = await this.client.guilds.fetch("595542444737822730");
 		guild.members.fetch().then(async members => {
 			let role = await guild.roles.fetch("813870659401678919")
@@ -326,6 +327,7 @@ module.exports.Bot = class Bot {
 			}
 			console.log("done adding roles");
 		});
+		*/
 	}
 
 	login(key) {
