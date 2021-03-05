@@ -446,16 +446,16 @@ module.exports.Bot = class Bot {
 		}
 	}
 
-	updateNitros() {
+	async updateNitros() {
 		console.log("NITRO UPDATE STARTED");
-		const pluto = this.client.guilds.cache.get("595542444737822730");
+		const pluto = await this.client.guilds.fetch("595542444737822730");
 		const boost = "608829202258591775";
 
 		console.log("REMOVING");
 		this.db.query("SELECT CAST(discordid as CHAR) as discordid FROM nitro WHERE boosting_since IS NOT NULL;", (err, nitros, fields) => {
 			if (err) throw err;
-			for (let i = 0; i < nitros.length; ++i) {
-				let member = pluto.members.cache.get(nitros[i].discordid);
+			for (let i = 0; i < nitros.length; i++) {
+				let member = await pluto.members.fetch(nitros[i].discordid);
 				if (!member || !member.premiumSinceTimestamp) {
 					console.log("REMOVING MEMBER: ", nitros[i]);
 					this.db.query("UPDATE nitro SET boosting_since = NULL WHERE discordid = ?;",[nitros[i].discordid], (err) => {
@@ -465,14 +465,14 @@ module.exports.Bot = class Bot {
 			}
 
 			console.log("ADDING");
-			pluto.roles.cache.get(boost).members.forEach((member, id) => {
-				console.log("ADDING MEMBER: ", id);
+			let role = await pluto.roles.fetch(boost)
+			for (let member of role.members.array()) {
 				let ts = moment(member.premiumSinceTimestamp).format("YYYY-MM-DD HH:mm:ss");
 				this.db.query("INSERT INTO nitro (discordid, first_boost, boosting_since) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE boosting_since = VALUE (boosting_since);",
-					[id, ts, ts], err => {
+					[member.id, ts, ts], err => {
 						if (err) throw err;
 					});
-			});
+			};
 		});
 	}
 
