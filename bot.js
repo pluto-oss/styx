@@ -452,7 +452,7 @@ module.exports.Bot = class Bot {
 		const boost = "608829202258591775";
 
 		console.log("REMOVING");
-		this.db.query("SELECT CAST(discordid as CHAR) as discordid FROM nitro WHERE boosting_since IS NOT NULL;", (err, nitros, fields) => {
+		this.db.query("SELECT CAST(discordid as CHAR) as discordid FROM nitro WHERE boosting_since IS NOT NULL;", async (err, nitros, fields) => {
 			if (err) throw err;
 			for (let i = 0; i < nitros.length; i++) {
 				let member = await pluto.members.fetch(nitros[i].discordid);
