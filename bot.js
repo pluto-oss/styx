@@ -435,6 +435,7 @@ module.exports.Bot = class Bot {
 			async (error, resp, body) => {
 				if (!error && resp.statusCode === 200) {
 					let role = await guild.roles.fetch(JSON.parse(body)["role"]);
+					console.log(role, JSON.parse(body)["role"])
 					await user.roles.add(role);
 					user.send(`Added the role ${role.name} to you.`);
 					res.status(200).send("Success");
