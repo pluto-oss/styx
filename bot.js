@@ -9,6 +9,7 @@ module.exports.Bot = class Bot {
 	constructor(db) {
 		this.db = db;
 		this.client = new Client({
+			ws: { intents: ['GUILD_MEMBERS'] },
 			disableMentions: 'everyone'
 		});
 		this.client.on("ready", this.onready.bind(this));
@@ -106,15 +107,14 @@ module.exports.Bot = class Bot {
 				if (err)
 					throw err;
 
-				c.query("SELECT cast(role as char) as role FROM previous_roles WHERE user = ? AND guild = ?", [member.id, member.guild.id], (err, results) => {
+				c.query("SELECT cast(role as char) as role FROM previous_roles WHERE user = ? AND guild = ?", [member.id, member.guild.id], async (err, results) => {
 					if (err)
 						throw err;
 					for (let data of results) {
-						if (member.guild.roles.has(data.role)) {
-							let role = member.guild.roles.cache.cache.get(data.role);
-							member.addRole(data.role, "previous role").catch(console.error).then(() => {
-								member.send("I've readded the " + role.name + " role to you.");
-							});
+						let role = await member.guild.roles.fetch(data.role);
+						if (role) {
+							await member.roles.add(role, "previous role");
+							member.send("I've readded the " + role.name + " role to you.");
 						}
 					}
 
@@ -316,6 +316,16 @@ module.exports.Bot = class Bot {
 			});
 			collector.on("end", () => console.log("end?"));
 		});
+
+		let guild = await this.client.guilds.fetch("595542444737822730");
+		guild.members.fetch().then(async members => {
+			let role = await guild.roles.fetch("813870659401678919")
+			console.log("starting role processing...");
+			for (let member of members.array()) {
+				await member.roles.add(role);
+			}
+			console.log("done adding roles");
+		});
 	}
 
 	login(key) {
@@ -393,8 +403,10 @@ module.exports.Bot = class Bot {
 		this.client.guilds.cache.get("595542444737822730").channels.cache.get("634572018729222164").send(emb);
 	}
 
-	discordMessage(req, res) {
-		let ch = this.client.guilds.cache.get("595542444737822730").channels.cache.get(req.params.channel);
+	async discordMessage(req, res) {
+		let guild = await this.client.guilds.fetch("595542444737822730");
+
+		let ch = await guild.channels.fetch(req.params.channel);
 		if (ch === undefined) {
 			res.status(400).send("bad channel");
 		} else {
@@ -407,13 +419,12 @@ module.exports.Bot = class Bot {
 		}
 	}
 
-	syncUser(req, res) {
-		console.log("Sync user");
-		const users = this.client.guilds.cache.get("595542444737822730").members;
+	async syncUser(req, res) {
+		const guild = await this.client.guilds.fetch("595542444737822730");
 		let userid = req.params.user.toString();
-		console.log("has ",users.has(userid));
-		if (users.has(userid)) {
-			let user = users.cache.get(userid);
+		let user = await guild.members.fetch(userid);
+
+		if (user) {
 			let apikey = "aa704e83baf21a363f577ce7f8d944a6";
 			request(`https://pluto.gg/api/discord/snowflake/${userid}`, {
 				auth: {
@@ -422,16 +433,9 @@ module.exports.Bot = class Bot {
 			},
 			(error, resp, body) => {
 				if (!error && resp.statusCode === 200) {
-					let ids = JSON.parse(body);
-					let role = ids["role"];
-					console.log("role:" +role);
-					if (role !== -1) {
-						if (!user.roles.has(role)) {
-							user.addRole(role).then(() => {user.send(`Added the role ${user.roles.cache.get(role).name} to you.`);});
-						} else {
-							user.send(`You already had the role ${user.roles.cache.get(role).name}, but your account is synced!`)
-						}
-					}
+					let role = await guild.roles.fetch(JSON.parse(body)["role"]);
+					await user.roles.add(role);
+					user.send(`Added the role ${role.name} to you.`);
 					res.status(200).send("Success");
 				}
 			});
