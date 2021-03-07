@@ -107,7 +107,7 @@ module.exports.Bot = class Bot {
 		});
 
 		this.app.get("/servers", async (req, res) => {
-			res.status(200).send("Success");
+			res.status(200).send(JSON.stringify([this.serverData]));
 		});
 		this.app.use("/", priv_router);
 	}
@@ -333,7 +333,7 @@ module.exports.Bot = class Bot {
 		this.client.channels.fetch("634573491185778688").then(async channel => {
 			let msgs = await channel.messages.fetchPinned();
 			let msg = msgs.array()[0];
-			this.serverUpdater = new Updater(msg);
+			this.serverUpdater = new Updater(this, msg);
 		});
 
 		this.client.channels.fetch("799238992485679134").then(async channel => {

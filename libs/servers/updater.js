@@ -7,7 +7,8 @@ const clients = [
 ];
 
 module.exports.Updater = class Updater {
-	constructor(msg) {
+	constructor(bot, msg) {
+		this.bot = bot;
 		this.msg = msg;
 		this.run();
 	}
@@ -52,6 +53,8 @@ module.exports.Updater = class Updater {
 			statuses.sort((a, b) => {
 				return a.address > b.address ? 1 : -1
 			});
+
+			this.bot.serverData = statuses;
 
 			embed.description = statuses.map(data => {
 				if (!data.info) {
