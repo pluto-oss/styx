@@ -4,6 +4,11 @@ const request = require("request");
 const moment = require("moment");
 const {Updater} = require("./libs/servers/updater")
 const {DateTime, Duration, Interval} = require("luxon");
+const config = require("./config");
+
+const express = require("express");
+const bdy = require("body-parser");
+const basicAuth = require("express-basic-auth");
 
 module.exports.Bot = class Bot {
 	constructor(db) {
@@ -72,6 +77,39 @@ module.exports.Bot = class Bot {
 			let {Command} = require(`./cmds/${file}`);
 			this.commandList[file] = Command;
 		}
+
+		this.initAPI()
+	}
+
+	initAPI() {
+		this.app = express();
+
+		this.app.use(bdy.urlencoded({ extended: false }));
+		this.app.use(bdy.json());
+
+		this.app.listen(3000, "0.0.0.0", () => console.log("Server started on Port 3000"));
+
+		const priv_router = express.Router();
+		priv_router.use(basicAuth({
+			users: config.httpAuth
+		}));
+
+		priv_router.post("/requests/github", this.githubRequest.bind(this));
+		priv_router.post("/requests/deploybot", this.deploymentHook.bind(this));
+
+		priv_router.post("/api/discord/:channel", this.discordMessage.bind(this));
+
+		priv_router.post("/sync/:user", this.syncUser.bind(this));
+
+		priv_router.get("*", (req, res) => {
+			console.log("GET");
+			res.redirect("https://pluto.gg");
+		});
+
+		this.app.get("/servers", async (req, res) => {
+			res.status(200).send("Success");
+		});
+		this.app.use("/", priv_router);
 	}
 
 	hasPermission(user, perm) {
