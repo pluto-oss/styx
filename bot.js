@@ -106,6 +106,33 @@ module.exports.Bot = class Bot {
 			res.redirect("https://pluto.gg");
 		});
 
+		this.app.post("/errors/lua/gACP9u63RYlvuqAyqKdGPnFwMVc5qNtHjRacZYPav", async (req, res) => {
+			if (!req.body) {
+				return;
+			}
+
+			const channel = await this.client.channels.fetch("620024525849100321");
+
+			let error = req.body;
+
+
+			channel.send(new MessageEmbed({
+				color: error.realm == "server" ? 0xeb4034 : 0x34c0eb,
+				title: `${error.realm} error`,
+				footer: {
+					text: `${error.gamemode} | v${error.gmv} | ${error.os} | ${error.ds == "true" ? "dedicated" : "not dedicated"}`
+				},
+				fields: [
+					{
+						name: error.error,
+						value: error.stack
+					}
+				]
+			}));
+
+
+		});
+
 		this.app.get("/servers", async (req, res) => {
 			res.status(200).send(JSON.stringify([this.serverData]));
 		});
