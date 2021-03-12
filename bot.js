@@ -9,6 +9,7 @@ const config = require("./config");
 const express = require("express");
 const bdy = require("body-parser");
 const basicAuth = require("express-basic-auth");
+const e = require("express");
 
 module.exports.Bot = class Bot {
 	constructor(db) {
@@ -81,6 +82,10 @@ module.exports.Bot = class Bot {
 		this.initAPI()
 	}
 
+	async guild() {
+		return await this.client.guilds.fetch("595542444737822730");
+	}
+
 	initAPI() {
 		this.app = express();
 
@@ -129,8 +134,37 @@ module.exports.Bot = class Bot {
 					}
 				]
 			}));
+		});
 
+		let cache = Object.create(null);
 
+		this.app.get("/pluto/emojis/:emoji", async (req, res) => {
+			const guild = await this.guild();
+			let emoji = await guild.emojis.cache.get(req.params.emoji.toString());
+			if (!emoji) {
+				res.status(400).end();
+				return;
+			}
+
+			if (cache[emoji.url]) {
+				res.setHeader("content-type", "image/png");
+				res.end(cache[emoji.url]);
+				return;
+			}
+
+			let data = await new Promise((res, rej) => {
+				request.get({url: emoji.url, encoding: null}, (err, resp, body) => {
+					if (err) {
+						return rej();
+					}
+					else {
+						res(resp.body);
+					}
+				});
+			});
+
+			cache[emoji.url] = data
+			res.end(data);
 		});
 
 		this.app.get("/servers", async (req, res) => {
@@ -411,16 +445,17 @@ module.exports.Bot = class Bot {
 		this.logChannel = channel;
 	}
 
-	sendLog(title, message, user, color) {
+	async sendLog(title, message, user, color) {
 		user = user.user || user || this.client.user;
 		color = color || "#36393E";
-		const logMessage = new MessageEmbed()
+		let channel = await (await this.guild()).channels.fetch(this.logChannel);
+
+		channel.send(new MessageEmbed()
 			.setColor(color)
 			.setTitle(title)
 			.setAuthor(user.username+"#"+user.discriminator,user.avatarURL)
 			.setDescription(message)
-			.setTimestamp();
-		this.client.guilds.cache.get("595542444737822730").channels.cache.get(this.logChannel).send(logMessage);
+			.setTimestamp());
 	}
 
 	githubRequest(req, res) {
@@ -470,7 +505,7 @@ module.exports.Bot = class Bot {
 	}
 
 	async discordMessage(req, res) {
-		let guild = await this.client.guilds.fetch("595542444737822730");
+		let guild = await this.guild();
 
 		let ch = await guild.channels.fetch(req.params.channel);
 		if (ch === undefined) {
@@ -486,7 +521,7 @@ module.exports.Bot = class Bot {
 	}
 
 	async syncUser(req, res) {
-		const guild = await this.client.guilds.fetch("595542444737822730");
+		let guild = await this.guild();
 		const forumsrole = await guild.roles.fetch("661013927940980749");
 		let userid = req.params.user.toString();
 		let user = await guild.members.fetch(userid);
@@ -520,7 +555,7 @@ module.exports.Bot = class Bot {
 
 	async updateNitros() {
 		console.log("NITRO UPDATE STARTED");
-		const pluto = await this.client.guilds.fetch("595542444737822730");
+		const pluto = await this.guild();
 		const boost = "608829202258591775";
 
 		console.log("REMOVING");
