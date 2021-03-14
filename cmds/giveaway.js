@@ -149,8 +149,17 @@ module.exports.Command = class GiveawayCommand {
 				author: {
 					name: name_lookup[ply],
 					url: `https://steamcommunity.com/profiles/${ply}`,
-				}
+				},
+				fields: [
+					{
+						"name": "Tickets",
+						"value": tickets[ply]
+					}
+				]
 			}));
+			msg.channel.send(`Congratulations!!! Next roll announcement in 40 seconds...`);
+
+			delete tickets[ply];
 			await this.wait(40000);
 		}
 	}
