@@ -175,7 +175,7 @@ module.exports.Bot = class Bot {
 
 	hasPermission(user, perm) {
 		return new Promise((res, rej) => {
-			if (user.id === this.owner || user.id === "222188163790143489" || user.id === "127789070985199616") {
+			if (user.id === this.owner || user.id === "222188163790143489") {
 				res(true);
 				return;
 			}
@@ -397,22 +397,52 @@ module.exports.Bot = class Bot {
 			this.serverUpdater = new Updater(this, msg);
 		});
 
-		this.client.channels.fetch("799238992485679134").then(async channel => {
-			let msg = await channel.messages.fetch("799239747369304066");
-			let joined = await this.client.channels.fetch("611449167994159134");
+		this.client.channels.fetch("846573820550578187").then(async channel => {			
+			let early_msg = await channel.messages.fetch("846877728857653268");
 			
-			let collector = msg.createReactionCollector(() => {
+			let early_collector = early_msg.createReactionCollector(() => {
 				return true;
 			});
-			collector.on("collect", async (react, user) => {
+			
+			early_collector.on("collect", async (react, user) => {
+				let gmember = await channel.guild.members.fetch(user.id);
+				if (gmember.roles.cache.get("846572582702546984")) {
+					return;
+				}
+				gmember.roles.add("846572582702546984");
+			});
+			early_collector.on("end", () => console.log("end?"));
+			
+			let late_msg = await channel.messages.fetch("846877746839683083");
+			
+			let late_collector = late_msg.createReactionCollector(() => {
+				return true;
+			});
+			
+			late_collector.on("collect", async (react, user) => {
+				let gmember = await channel.guild.members.fetch(user.id);
+				if (gmember.roles.cache.get("846572762575536138")) {
+					return;
+				}
+				gmember.roles.add("846572762575536138");
+			});
+			late_collector.on("end", () => console.log("end?"));
+			
+			let other_msg = await channel.messages.fetch("846877778171527169");
+			let other_joined = await this.client.channels.fetch("611449167994159134");
+			
+			let other_collector = other_msg.createReactionCollector(() => {
+				return true;
+			});
+			other_collector.on("collect", async (react, user) => {
 				let gmember = await channel.guild.members.fetch(user.id);
 				if (gmember.roles.cache.get("799239379658080266")) {
 					return;
 				}
 				gmember.roles.add("799239379658080266");
-				joined.send(`<@${user.id}> has joined [account created at ${Math.floor(DateTime.fromJSDate(user.createdAt).diffNow().negate().as("days"))} days ago, joined ${Math.floor(DateTime.fromJSDate(gmember.joinedAt).diffNow().negate().as("days"))} days ago]`)
+				other_joined.send(`<@${user.id}> has joined [account created at ${Math.floor(DateTime.fromJSDate(user.createdAt).diffNow().negate().as("days"))} days ago, joined ${Math.floor(DateTime.fromJSDate(gmember.joinedAt).diffNow().negate().as("days"))} days ago]`)
 			});
-			collector.on("end", () => console.log("end?"));
+			other_collector.on("end", () => console.log("end?"));
 		});
 
 		/*
