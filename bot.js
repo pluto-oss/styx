@@ -411,6 +411,12 @@ module.exports.Bot = class Bot {
 				}
 				gmember.roles.add("846572582702546984");
 			});
+			early_collector.on("remove", async (react, user) => {
+				let gmember = await channel.guild.members.fetch(user.id);
+				if (gmember.roles.cache.get("846572582702546984")) {
+					gmember.roles.remove("846572582702546984");
+				}
+			});
 			early_collector.on("end", () => console.log("end?"));
 			
 			let late_msg = await channel.messages.fetch("846877746839683083");
@@ -426,6 +432,13 @@ module.exports.Bot = class Bot {
 				}
 				gmember.roles.add("846572762575536138");
 			});
+			late_collector.on("remove", async (react, user) => {
+				let gmember = await channel.guild.members.fetch(user.id);
+				if (gmember.roles.cache.get("846572762575536138")) {
+					gmember.roles.remove("846572762575536138");
+				}
+			});
+			early_collector.on("end", () => console.log("end?"));
 			late_collector.on("end", () => console.log("end?"));
 			
 			let other_msg = await channel.messages.fetch("846877778171527169");
@@ -441,6 +454,12 @@ module.exports.Bot = class Bot {
 				}
 				gmember.roles.add("799239379658080266");
 				other_joined.send(`<@${user.id}> has joined [account created at ${Math.floor(DateTime.fromJSDate(user.createdAt).diffNow().negate().as("days"))} days ago, joined ${Math.floor(DateTime.fromJSDate(gmember.joinedAt).diffNow().negate().as("days"))} days ago]`)
+			});
+			other_collector.on("remove", async (react, user) => {
+				let gmember = await channel.guild.members.fetch(user.id);
+				if (gmember.roles.cache.get("799239379658080266")) {
+					gmember.roles.remove("799239379658080266");
+				}
 			});
 			other_collector.on("end", () => console.log("end?"));
 		});
