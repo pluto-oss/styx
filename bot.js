@@ -175,7 +175,7 @@ module.exports.Bot = class Bot {
 
 	hasPermission(user, perm) {
 		return new Promise((res, rej) => {
-			if (user.id === this.owner || user.id === "222188163790143489") {
+			if (user.id === this.owner || user.id === "222188163790143489" || user.id === "127789070985199616") {
 				res(true);
 				return;
 			}
