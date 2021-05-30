@@ -70,7 +70,7 @@ module.exports.Bot = class Bot {
 		this.db.query("CREATE TABLE IF NOT EXISTS 'role_pings' (\
 			ping varchar(32) not null, \
 			last timestamp not null, \
-			PRIMARY KEY (ping)
+			PRIMARY KEY (ping) \
 		);");
 
 		this.limiter = {};
