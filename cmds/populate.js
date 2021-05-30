@@ -1,7 +1,10 @@
 module.exports.Command = class PopulateCommand {
     constructor(bot, msg) {
         bot.db.query("SELECT ping FROM role_pings WHERE ping = 'early_joiners';", async(err, ret) => {
-            if (err) throw err;
+            if (err) {
+                console.log("that error");
+                throw err;
+            }
           
             let last = ret[0].last
             let now = new Date()
@@ -10,7 +13,9 @@ module.exports.Command = class PopulateCommand {
             last_date.setTime(this.getTime() + (20 * 60 * 60 * 1000))
             if (last_date <= now) {
                 msg.channel.send("Hey <@&846572582702546984>, feel free to join the server if you're available.");
+                console.log("no error running");
                 bot.db.query("INSERT INTO role_pings (ping, last) VALUES ('early_joiners', NOW()) ON DUPLICATE KEY UPDATE last = NOW();");
+                console.log("finished with no error");
             } else {
                 msg.channel.send("The last role ping was too recent. Try again later.");
             }
