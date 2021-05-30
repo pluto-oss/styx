@@ -443,7 +443,6 @@ module.exports.Bot = class Bot {
 					gmember.roles.remove("846572762575536138");
 				}
 			});
-			early_collector.on("end", () => console.log("end?"));
 			late_collector.on("end", () => console.log("end?"));
 			
 			let other_msg = await channel.messages.fetch("846877778171527169");
