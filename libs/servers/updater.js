@@ -79,7 +79,9 @@ module.exports.Updater = class Updater {
 					    if (last_date <= now) {
 						let ping_channel = await this.bot.client.channels.fetch("846886760386658305");
 						ping_channel.send("Hey <@&846572582702546984>, feel free to join the server if you're available.");
+						console.log("Print statement");
 						this.bot.db.query("INSERT INTO role_pings (ping, last) VALUES ('late_joiners', NOW()) ON DUPLICATE KEY UPDATE last = NOW();");
+						console.log("print statement 2");
 					    }
 					});
 				}
