@@ -62,6 +62,25 @@ module.exports.Updater = class Updater {
 				}
 
 				let info = data.info;
+				
+				// Hijacking for Late Joiners automated ping
+				if (info.players >= 8) {
+					this.bot.db.query("SELECT ping FROM role_pings WHERE ping = 'late_joiners';", async(err, ret) => {
+					    if (err) throw err;
+
+					    let last = ret[0].last
+					    let now = new Date()
+					    let last_split = last.split(/[- :]/)
+					    let last_date = new Date(Date.UTC(last_split[0], last_split[1] - 1, last_split[2], last_split[3], last_split[4], last_split[5]))
+					    last_date.setTime(this.getTime() + (20 * 60 * 60 * 1000))
+					    if (last_date <= now) {
+						let ping_channel = await this.client.channels.fetch("846886760386658305");
+						ping_channel.send("Hey <@&846572582702546984>, feel free to join the server if you're available.");
+						this.bot.db.query("INSERT INTO pings (ping, last) VALUES ('late_joiners', NOW()) ON DUPLICATE KEY UPDATE last = NOW();");
+					    }
+					});
+				}
+				// End hijack
 
 				return `💡 | ${info.players} / ${info.maxPlayers} | [${info.serverName}](https://pluto.gg/connect/${data.address}) | 🗺️ ${info.mapName}`
 			}).join("\n");
