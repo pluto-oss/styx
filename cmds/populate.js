@@ -10,7 +10,7 @@ module.exports.Command = class PopulateCommand {
             last_date.setTime(this.getTime() + (20 * 60 * 60 * 1000))
             if (last_date <= now) {
                 msg.channel.send("Hey <@&846572582702546984>, feel free to join the server if you're available.");
-                bot.db.query("INSERT INTO pings (ping, last) VALUES ('early_joiners', NOW()) ON DUPLICATE KEY UPDATE last = NOW();");
+                bot.db.query("INSERT INTO role_pings (ping, last) VALUES ('early_joiners', NOW()) ON DUPLICATE KEY UPDATE last = NOW();");
             } else {
                 msg.channel.send("The last role ping was too recent. Try again later.");
             }
