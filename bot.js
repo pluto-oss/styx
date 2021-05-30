@@ -67,7 +67,7 @@ module.exports.Bot = class Bot {
 			boosting_since timestamp null, \
 			PRIMARY KEY (discordid) \
 		);");
-		this.db.query("CREATE TABLE IF NOT EXISTS 'role_pings' (\
+		this.db.query("CREATE TABLE IF NOT EXISTS `role_pings` (\
 			ping varchar(32) not null, \
 			last timestamp not null, \
 			PRIMARY KEY (ping) \
