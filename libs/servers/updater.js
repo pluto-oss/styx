@@ -66,7 +66,10 @@ module.exports.Updater = class Updater {
 				// Hijacking for Late Joiners automated ping
 				if (info.players >= 8) {
 					this.bot.db.query("SELECT ping FROM role_pings WHERE ping = 'late_joiners';", async(err, ret) => {
-					    if (err) throw err;
+					    if (err) {
+						    console.log("this error");
+						    throw err;
+					    }
 
 					    let last = ret[0].last
 					    let now = new Date()
