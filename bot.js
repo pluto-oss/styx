@@ -67,11 +67,11 @@ module.exports.Bot = class Bot {
 			boosting_since timestamp null, \
 			PRIMARY KEY (discordid) \
 		);");
-		this.db.query("CREATE TABLE IF NOT EXISTS `role_pings` (\
-			ping varchar(32) not null, \
-			last timestamp not null, \
-			PRIMARY KEY (ping) \
-		);");
+		this.db.query(`CREATE TABLE IF NOT EXISTS \`role_pings\` (
+			ping varchar(32) not null,
+			last timestamp not null,
+			PRIMARY KEY (ping)
+		);`);
 
 		this.limiter = {};
 
@@ -408,7 +408,9 @@ module.exports.Bot = class Bot {
 			let early_collector = early_msg.createReactionCollector(() => {
 				return true;
 			});
-			
+
+			early_collector.options.dispose = true;
+
 			early_collector.on("collect", async (react, user) => {
 				let gmember = await channel.guild.members.fetch(user.id);
 				if (gmember.roles.cache.get("846572582702546984")) {
@@ -429,6 +431,8 @@ module.exports.Bot = class Bot {
 			let late_collector = late_msg.createReactionCollector(() => {
 				return true;
 			});
+
+			late_collector.options.dispose = true;
 			
 			late_collector.on("collect", async (react, user) => {
 				let gmember = await channel.guild.members.fetch(user.id);
@@ -501,14 +505,14 @@ module.exports.Bot = class Bot {
 	async sendLog(title, message, user, color) {
 		user = user.user || user || this.client.user;
 		color = color || "#36393E";
-		let channel = await (await this.guild()).channels.fetch(this.logChannel);
+		/*let channel = await (await this.guild()).channels.fetch(this.logChannel);
 
 		channel.send(new MessageEmbed()
 			.setColor(color)
 			.setTitle(title)
 			.setAuthor(user.username+"#"+user.discriminator,user.avatarURL)
 			.setDescription(message)
-			.setTimestamp());
+			.setTimestamp());*/
 	}
 
 	githubRequest(req, res) {
