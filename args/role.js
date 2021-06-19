@@ -18,11 +18,11 @@ module.exports.Role = class Role {
 				return;
 			
 			let possible = [];
-			for (let role of msg.guild.roles.array()) {
+			msg.guild.roles.cache.each(role => {
 				if (role.name.toLowerCase().indexOf(role_data[0].toLowerCase()) !== -1) {
 					possible.push(role);
 				}
-			}
+			});
 
 			if (possible.length === 1) {
 				this.data = possible[0];
