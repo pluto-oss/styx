@@ -64,8 +64,19 @@ module.exports.Updater = class Updater {
 				let info = data.info;
 				
 				// Hijacking for Late Joiners automated ping
-				let min_time = 20 * 60 * 60
+				let min_time = 120 //20 * 60 * 60
 				let min_players = 8
+
+				const rounds = [
+					"blackmarket",
+					"boom",
+					"hitlist",
+					"hotshot",
+					"infection",
+					"kingofthequill",
+					"phantom",
+					"trifight",
+				];
 
 				if (info.players >= min_players) {
 					this.bot.db.query("SELECT TIMESTAMPDIFF(SECOND, last, CURRENT_TIMESTAMP) as ago, ping FROM role_pings WHERE ping = 'late_joiners'", async(err, ret) => {
@@ -75,8 +86,21 @@ module.exports.Updater = class Updater {
 
 						if (ret[0].ago >= min_time) {
 							let ping_channel = await this.bot.client.channels.fetch("846886760386658305");
-							ping_channel.send("Hey <@&846572762575536138>, we've hit " + min_players + " players on one of the servers! Feel free to join us.")
+							//ping_channel.send("Hey <@&846572762575536138>, we've hit " + min_players + " players on one of the servers! Feel free to join us.")
+							//ping_channel.send("Hey <@&846572762575536138>, we've hit " + min_players + " players on one of the servers! In five minutes, a random round will be queued!")
+							ping_channel.send("Hey TEST, we've hit " + min_players + " players on one of the servers! In five minutes, a random round will be queued!")
 							this.bot.db.query("INSERT INTO role_pings (ping, last) VALUES ('late_joiners', NOW()) ON DUPLICATE KEY UPDATE last = NOW();");
+
+							let ind = data.address.indexOf(".pluto.gg") // bad method?
+							let serv = "test"
+
+							if (ind >= 1) {
+								serv = data.address.slice(0, ind)
+							}
+
+							let randomround = rounds[Math.floor(Math.random() * rounds.length)]
+
+							this.bot.db.query("INSERT INTO pluto.pluto_round_queue (server, time, name) VALUES (?, NOW() + INTERVAL 5 MINUTE, ?);", [serv, randomround]);
 						}
 					});
 				}
