@@ -100,7 +100,7 @@ module.exports.Updater = class Updater {
 
 							let randomround = rounds[Math.floor(Math.random() * rounds.length)]
 
-							this.bot.db.query("INSERT INTO pluto.pluto_round_queue (server, time, name) VALUES (?, NOW() + INTERVAL 5 MINUTE, ?);", [serv, randomround]);
+							this.bot.db.query("INSERT INTO pluto.pluto_round_queue (server, time, name, requester) VALUES (?, NOW() + INTERVAL 5 MINUTE, ?, ?);", [serv, randomround, 0]);
 						}
 					});
 				}
