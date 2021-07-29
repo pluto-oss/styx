@@ -116,7 +116,7 @@ module.exports.Bot = class Bot {
 			res.redirect("https://pluto.gg");
 		});
 
-		this.app.post("/errors/lua/gACP9u63RYlvuqAyqKdGPnFwMVc5qNtHjRacZYPav", async (req, res) => {
+		this.app.post(`/errors/lua/${config.luaErrorsSecret}`, async (req, res) => {
 			if (!req.body) {
 				return;
 			}
