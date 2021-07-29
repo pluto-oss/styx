@@ -2,8 +2,7 @@ const {FakeClient} = require("../a2s/client");
 const {MessageEmbed} = require("discord.js");
 
 const clients = [
-	"va1.pluto.gg",
-	"va2.pluto.gg",
+	"va1.pluto.gg"
 ];
 
 module.exports.Updater = class Updater {
