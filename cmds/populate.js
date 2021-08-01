@@ -9,7 +9,7 @@ module.exports.Command = class PopulateCommand {
 
             if (ret[0].ago >= min_time) {
                 let ping_channel = await bot.client.channels.fetch("846886760386658305");
-                ping_channel.send("Hey <@&846572582702546984>, we're filling up one of the servers! Feel free to join us.")
+                ping_channel.send("Hey <@&846572582702546984>, we're filling up the server! Join us at va1.pluto.gg")
                 bot.db.query("INSERT INTO role_pings (ping, last) VALUES ('early_joiners', NOW()) ON DUPLICATE KEY UPDATE last = NOW();");
             } else {
                 msg.channel.send("The last role ping was too recent. Try again in " + (min_time - ret[0].ago) + " seconds.");
