@@ -103,7 +103,7 @@ module.exports.Updater = class Updater {
 				}
 				// End hijack
 
-				return `💡 | ${info.players} / ${info.maxPlayers} | [${info.serverName}](steam://connect/${data.address}) | 🗺️ ${info.mapName}`
+				return `💡 | ${info.players} / ${info.maxPlayers} | ${info.serverName} | 🗺️ ${info.mapName}`
 			}).join("\n");
 
 			try {
