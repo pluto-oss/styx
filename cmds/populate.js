@@ -1,4 +1,4 @@
-module.exports.Command = class PopulateCommand {
+export default class PopulateCommand {
     constructor(bot, msg) {
         let min_time = 20 * 60 * 60
 

@@ -1,8 +1,6 @@
-const {Text} = require("../args/text");
-const {Updater} = require("../libs/servers/updater");
-const util = require("util");
+import Updater from "../libs/servers/index.js";
 
-module.exports.Command = class JSCommand {
+export default class JSCommand {
     constructor(bot, msg, args) {
 		msg.reply("starting").then(newmsg => {
 			new Updater(newmsg);

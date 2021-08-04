@@ -1,17 +1,14 @@
-const {Client, MessageEmbed, DiscordAPIError, ReactionCollector} = require("discord.js");
-const fs = require("fs");
-const request = require("request");
-const moment = require("moment");
-const {Updater} = require("./libs/servers/updater")
-const {DateTime, Duration, Interval} = require("luxon");
-const config = require("./config");
+import {Client, MessageEmbed} from "discord.js";
+import {readdir} from "fs/promises";
+import {DateTime} from "luxon";
 
-const express = require("express");
-const bdy = require("body-parser");
-const basicAuth = require("express-basic-auth");
-const e = require("express");
+import request from "request";
+import moment from "moment";
+import express from "express";
+import bdy from "body-parser";
+import basicAuth from "express-basic-auth";
 
-module.exports.Bot = class Bot {
+export default class Bot {
 	constructor(db) {
 		this.db = db;
 		this.client = new Client({
@@ -21,53 +18,54 @@ module.exports.Bot = class Bot {
 		this.client.on("message", this.onmessage.bind(this));
 		this.client.on("guildMemberRemove", this.onmemberleave.bind(this));
 		this.client.on("guildMemberAdd", this.onmemberjoin.bind(this));
-		this.db.query("CREATE TABLE IF NOT EXISTS `styx_settings` (\
-			setting varchar(20) not null,\
-			value varchar(20) not null\
-		);");
-		this.db.query("CREATE TABLE IF NOT EXISTS `stored_messages` (\
-			guild_id bigint unsigned not null, \
-			channel_id bigint unsigned not null, \
-			message_id bigint unsigned not null, \
-			sender_id bigint unsigned not null, \
-			text varchar(2000) not null, \
-			time TIMESTAMP ON UPDATE CURRENT_TIMESTAMP DEFAULT CURRENT_TIMESTAMP, \
-			CONSTRAINT message_pk PRIMARY KEY USING BTREE (message_id)\
-		);");
-		this.db.query("CREATE TABLE IF NOT EXISTS `message_attachments` (\
-			attachment_id bigint unsigned not null, \
-			message_id bigint unsigned not null, \
-			url varchar(2000) not null, \
-			INDEX(message_id), \
-			FOREIGN KEY (message_id) REFERENCES stored_messages (message_id) ON DELETE CASCADE ON UPDATE CASCADE \
-		);");
-		this.db.query("CREATE TABLE IF NOT EXISTS `warns` (\
-			admin_id bigint unsigned not null, \
-			warn_msg_id bigint unsigned not null, \
-			last_msg_id bigint unsigned, \
-			warned_id bigint unsigned not null, \
-			INDEX(warned_id), \
-			FOREIGN KEY (warn_msg_id) REFERENCES stored_messages (message_id) ON DELETE NO ACTION ON UPDATE NO ACTION, \
-			FOREIGN KEY (last_msg_id) REFERENCES stored_messages (message_id) ON DELETE NO ACTION ON UPDATE NO ACTION \
-		);");
-		this.db.query("CREATE TABLE IF NOT EXISTS `role_permissions` ( \
-			role bigint unsigned not null, \
-			permission varchar(16) not null, \
-			INDEX(role) \
-		)");
-		this.db.query("CREATE TABLE IF NOT EXISTS `previous_roles` (\
-			user bigint unsigned not null, \
-			role bigint unsigned not null, \
-			guild bigint unsigned not null, \
-			INDEX(user) \
-		);");
-		this.db.query("CREATE TABLE IF NOT EXISTS `nitro` (\
-			discordid bigint unsigned not null, \
-			first_boost timestamp not null, \
-			boosting_since timestamp null, \
-			PRIMARY KEY (discordid) \
-		);");
-		this.db.query(`CREATE TABLE IF NOT EXISTS \`role_pings\` (
+		this.db.query(`
+		CREATE TABLE IF NOT EXISTS styx_settings (
+			setting varchar(20) not null,
+			value varchar(20) not null
+		);
+		CREATE TABLE IF NOT EXISTS stored_messages (
+			guild_id bigint unsigned not null,
+			channel_id bigint unsigned not null,
+			message_id bigint unsigned not null,
+			sender_id bigint unsigned not null,
+			text varchar(2000) not null,
+			time TIMESTAMP ON UPDATE CURRENT_TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			CONSTRAINT message_pk PRIMARY KEY USING BTREE (message_id)
+		);
+		CREATE TABLE IF NOT EXISTS message_attachments (
+			attachment_id bigint unsigned not null,
+			message_id bigint unsigned not null,
+			url varchar(2000) not null,
+			INDEX(message_id),
+			FOREIGN KEY (message_id) REFERENCES stored_messages (message_id) ON DELETE CASCADE ON UPDATE CASCADE
+		);
+		CREATE TABLE IF NOT EXISTS warns (
+			admin_id bigint unsigned not null,
+			warn_msg_id bigint unsigned not null,
+			last_msg_id bigint unsigned,
+			warned_id bigint unsigned not null,
+			INDEX(warned_id),
+			FOREIGN KEY (warn_msg_id) REFERENCES stored_messages (message_id) ON DELETE NO ACTION ON UPDATE NO ACTION,
+			FOREIGN KEY (last_msg_id) REFERENCES stored_messages (message_id) ON DELETE NO ACTION ON UPDATE NO ACTION
+		);
+		CREATE TABLE IF NOT EXISTS role_permissions (
+			role bigint unsigned not null,
+			permission varchar(16) not null,
+			INDEX(role)
+		);
+		CREATE TABLE IF NOT EXISTS previous_roles (
+			user bigint unsigned not null,
+			role bigint unsigned not null,
+			guild bigint unsigned not null,
+			INDEX(user)
+		);
+		CREATE TABLE IF NOT EXISTS nitro (
+			discordid bigint unsigned not null,
+			first_boost timestamp not null,
+			boosting_since timestamp null,
+			PRIMARY KEY (discordid)
+		);
+		CREATE TABLE IF NOT EXISTS role_pings (
 			ping varchar(32) not null,
 			last timestamp not null,
 			PRIMARY KEY (ping)
@@ -77,21 +75,20 @@ module.exports.Bot = class Bot {
 
 		this.commandList = {};
 
-		const files = fs.readdirSync("./cmds");
-		for (let file of files) {
-			file = file.substr(0, file.length-3);
-			let {Command} = require(`./cmds/${file}`);
-			this.commandList[file] = Command;
-		}
-
-		this.initAPI()
+		this.initAPI();
 	}
 
 	async guild() {
 		return await this.client.guilds.fetch("595542444737822730");
 	}
 
-	initAPI() {
+	async initAPI() {
+		const files = await readdir("./cmds");
+		for (let file of files) {
+			let lib = await import(`./cmds/${file}`);
+			this.commandList[file.substr(0, file.length - 3)] = lib.default;
+		}
+
 		this.app = express();
 
 		this.app.use(bdy.urlencoded({ extended: false }));
@@ -392,15 +389,18 @@ module.exports.Bot = class Bot {
 	async onready() {
 		console.log(`Logged into discord: ${this.client.user.tag}`);
 
+		if (!this.libraries) {
+			this.libraries = [];
+			for (let instconfig of config.libraries) {
+				let lib = await import(`./libs/${instconfig.library}`);
+
+				this.libraries.push(new lib.default(this, instconfig.data));
+			}
+		}
+
 		if (this.serverUpdater) {
 			return;
 		}
-
-		this.client.channels.fetch("634573491185778688").then(async channel => {
-			let msgs = await channel.messages.fetchPinned();
-			let msg = msgs.array()[0];
-			this.serverUpdater = new Updater(this, msg);
-		});
 
 		this.client.channels.fetch("846573820550578187").then(async channel => {			
 			let early_msg = await channel.messages.fetch("846877728857653268");
@@ -619,7 +619,12 @@ module.exports.Bot = class Bot {
 		this.db.query("SELECT CAST(discordid as CHAR) as discordid FROM nitro WHERE boosting_since IS NOT NULL;", async (err, nitros, fields) => {
 			if (err) throw err;
 			for (let i = 0; i < nitros.length; i++) {
-				let member = await pluto.members.fetch(nitros[i].discordid);
+				let member;
+				try {
+					member = await pluto.members.fetch(nitros[i].discordid);
+				}
+				catch(e) { }
+
 				if (!member || !member.premiumSinceTimestamp) {
 					console.log("REMOVING MEMBER: ", nitros[i]);
 					this.db.query("UPDATE nitro SET boosting_since = NULL WHERE discordid = ?;",[nitros[i].discordid], (err) => {

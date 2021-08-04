@@ -1,4 +1,4 @@
-module.exports.User = class User {
+export default class User {
 	constructor(bot, text, ind, msg) {
 		let regex = /<@!?([0-9]+)>/g;
 		regex.lastIndex = ind;

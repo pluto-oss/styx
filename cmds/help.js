@@ -1,7 +1,6 @@
-const {Text} = require("../args/text");
-const {ArgumentError} = require("../errors");
+import Text from "../args/text.js";
 
-module.exports.Command = class HelpCommand {
+export default class HelpCommand {
     constructor(bot, msg, args) {
         let cmd = bot.commandList[args[0]];
 

@@ -1,10 +1,8 @@
-const {Text} = require("../args/text");
-const {User} = require("../args/user");
-const {ArgumentError} = require("../errors");
-const {inspect} = require("util");
-const {MessageEmbed} = require("discord.js");
-
-const {ID} = require("@node-steam/id");
+import Text from "../args/text.js";
+import User from "../args/user.js";
+import MessageEmbed from "discord.js";
+import ArgumentError from "../errors.js";
+import ID from "@node-steam/id";
 
 const base = 15;
 const linear = 22;
@@ -58,7 +56,7 @@ function nicetime(playtime) {
 	return nicetime.join(" ");
 }
 
-module.exports.Command = class UserInfoCommand {
+export default class UserInfoCommand {
 	constructor(bot, msg, args) {
 		if (args.length !== 1) 
 			throw new ArgumentError(this.constructor.arguments(), args.length);

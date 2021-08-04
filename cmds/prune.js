@@ -1,8 +1,7 @@
-const {Num} = require("../args/num");
-const {User} = require("../args/user");
-const {ArgumentError} = require("../errors");
+import Num from "../args/num.js";
+import ArgumentError from "../errors.js";
 
-module.exports.Command = class PruneCommand {
+export default class PruneCommand {
     constructor(bot, msg, args) {
         if (args.length !== 1)
             throw new ArgumentError(this.constructor.arguments(), args.length);

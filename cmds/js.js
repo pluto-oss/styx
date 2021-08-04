@@ -1,9 +1,8 @@
-const {Text} = require("../args/text");
-const {ArgumentError} = require("../errors");
+import Text from "../args/text.js";
 
-module.exports.Command = class JSCommand {
+export default class JSCommand {
     constructor(bot, msg, args) {
-        let fn = new Function("bot", "msg", "require", args[0]);
+        let fn = new Function("bot", "msg", args[0]);
 
 		if (!fn) {
 			msg.reply("Couldn't create function");
@@ -11,7 +10,7 @@ module.exports.Command = class JSCommand {
 		}
 
 		try {
-			let res = fn(bot, msg, require);
+			let res = fn(bot, msg);
 
 			if (res) {
 				msg.reply("result: " + res.toString());

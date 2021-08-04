@@ -1,7 +1,7 @@
-const {ID} = require("@node-steam/id");
-const {MessageEmbed} = require("discord.js");
+import {ID} from "@node-steam/id";
+import {MessageEmbed} from "discord.js";
 
-module.exports.Command = class GiveawayCommand {
+export default class GiveawayCommand {
 	wait(length_ms) {
 		return new Promise(res => {
 			setTimeout(res, length_ms);

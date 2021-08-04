@@ -1,4 +1,4 @@
-module.exports.Role = class Role {
+export default class Role {
 	constructor(bot, text, ind, msg) {
 		let regex = /<@&([0-9]+)>/g;
 		regex.lastIndex = ind;

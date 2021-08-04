@@ -1,10 +1,14 @@
-// STYX BOT RELATED \\
+import {CronJob} from "cron";
+import {readFile} from "fs/promises";
 
-const mysql = require("mysql2");
-const config = require("./config");
-const CronJob = require("cron").CronJob;
+import mysql from "mysql2";
+import Bot from "./bot.js";
 
-const {Bot} = require("./bot");
+global.config = JSON.parse(
+	await readFile(
+		new URL('./config.json', import.meta.url)
+	)
+);
 
 const pools = mysql.createPool({
 	host: config.mysql.host,
@@ -14,7 +18,8 @@ const pools = mysql.createPool({
 	connectionLimit: 10,
 	queueLimit: 0,
 	waitForConnections: true,
-	charset: 'utf8mb4'
+	charset: 'utf8mb4',
+	multipleStatements: true
 });
 
 const bot = new Bot(pools);

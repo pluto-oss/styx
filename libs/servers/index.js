@@ -1,27 +1,31 @@
-const {FakeClient} = require("../a2s/client");
-const {MessageEmbed} = require("discord.js");
+import FakeClient from "../a2s/index.js";
+import {MessageEmbed} from "discord.js";
 
-const clients = [
-	"va1.pluto.gg"
-];
-
-module.exports.Updater = class Updater {
-	constructor(bot, msg) {
+export default class Updater {
+	constructor(bot, data) {
+		console.log(data);
 		this.bot = bot;
-		this.msg = msg;
-		this.run();
+
+		this.gameServers = data.gameServers;
+
+		bot.client.channels.fetch(data.channel).then(async channel => {
+			let msgs = await channel.messages.fetchPinned();
+			this.msg = msgs.array()[0];
+			this.run();
+		});
 	}
 
 	async run() {
 		if (!this.clients) {
 			// make new clients
-			
+
 			this.clients = [];
 
-			for (let address of clients) {
+			for (let [address, port] of this.gameServers) {
+				console.log(address, port);
 				let cl;
 				try {
-					cl = await FakeClient.fromAddress(address, 27015, 3000);
+					cl = await FakeClient.fromAddress(address, port, 3000);
 				}
 				catch (e) {
 					console.error(e);

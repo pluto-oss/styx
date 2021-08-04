@@ -1,7 +1,7 @@
-const {Text} = require("../args/text");
-const {ID} = require("@node-steam/id");
+import Text from "../args/text.js";
+import {ID} from "@node-steam/id";
 
-module.exports.Command = class SteamIDCommand {
+export default class SteamIDCommand {
     constructor(bot, msg, args) {
 		try {
 			let steamid = new ID(args[0]);

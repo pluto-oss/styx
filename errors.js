@@ -1,4 +1,4 @@
-module.exports.ArgumentError = class ArgumentError {
+export default class ArgumentError {
 	constructor(types, ind) {
 		this.types = types;
 		this.ind = ind;

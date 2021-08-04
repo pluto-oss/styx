@@ -1,8 +1,7 @@
-const {Text} = require("../args/text");
-const {Num} = require("../args/num");
-const {ArgumentError} = require("../errors");
+import Text from "../args/text.js";
+import Num from "../args/num.js";
 
-module.exports.Command = class StatusCommand {
+export default class StatusCommand {
     constructor(bot, msg, args) {
         if (args.length != 2) {
             //this shit broken

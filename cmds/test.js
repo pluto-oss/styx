@@ -1,9 +1,8 @@
-const {Text} = require("../args/text");
-const {User} = require("../args/user");
-const {Role} = require("../args/role");
-const {ArgumentError} = require("../errors");
+import Text from "../args/text.js";
+import Role from "../args/role.js";
+import ArgumentError from "../errors.js";
 
-module.exports.Command = class TestCommand {
+export default class TestCommand {
 	constructor(bot, msg, args) {
 		if (args.length !== 2) 
 			throw new ArgumentError(this.constructor.arguments(), args.length);

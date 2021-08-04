@@ -1,7 +1,6 @@
-const {Text} = require("../args/text");
-const {ArgumentError} = require("../errors");
+import Text from "../args/text.js";
 
-module.exports.Command = class SQLCommand {
+export default class SQLCommand {
     constructor(bot, msg, args) {
         bot.db.query(args[0], function(err, result) {
             if (err) throw err;

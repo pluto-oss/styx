@@ -1,8 +1,8 @@
-const {User} = require("../args/user");
-const {Text} = require("../args/text");
-const {ArgumentError} = require("../errors");
+import User from "../args/user.js";
+import Text from "../args/text.js";
+import ArgumentError from "../errors.js";
 
-module.exports.Command = class JailCommand {
+export default class JailCommand {
 	constructor(bot, msg, args) {
 		if (args.length !== 2) 
 			throw new ArgumentError(this.constructor.arguments(), args.length);

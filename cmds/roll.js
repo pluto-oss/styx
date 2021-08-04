@@ -1,4 +1,4 @@
-module.exports.Command = class RollCommand {
+export default class RollCommand {
     constructor(bot,msg) {
         msg.reply(["heads","tails"][Math.floor(Math.random()*2)]);
     }

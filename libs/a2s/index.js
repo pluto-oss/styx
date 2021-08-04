@@ -1,8 +1,7 @@
-const dgram = require("dgram");
-const events = require("events");
-const dns = require("dns");
-
-const sock = dgram.createSocket("udp4");
+import events from "events"
+import dns from "dns";
+import {createSocket} from "dgram";
+const sock = createSocket("udp4");
 
 class PacketHelper {
 	static readString(buf, offset) {
@@ -156,7 +155,7 @@ class S2C_ConnReject {
 
 let Distributor = Object.create(null); // Distributor[address][port] = FakeClient
 
-var FakeClient = module.exports.FakeClient = class FakeClient extends events.EventEmitter {
+export default class FakeClient extends events.EventEmitter {
 	constructor(remote) {
 		super();
 		this.address = remote.address;

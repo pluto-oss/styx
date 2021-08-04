@@ -1,4 +1,4 @@
-module.exports.Num = class Num {
+export default class Num {
     constructor(bot, text, ind) {
         let value = text.slice(ind);
         value = value.split(" ")[0];

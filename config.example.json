@@ -1,12 +1,33 @@
 {
 	"discord": {
-		"key": "<<bot token>>",
-		"owner": "<<yourid>>"
+		"key": "discord_apikey",
+		"owners": ["150809682318065664"],
+		"guild": "290669947267317762",
+		"channels": {
+			"jail": "609203171042131976",
+			"logs": "626992813623476255"
+		}
 	},
 	"mysql": {
-		"database": "<database>",
-		"host": "<host>",
-		"user": "<user>",
-		"password": "<password>"
-	}
+		"database": "database",
+		"host": "host",
+		"user": "stuseryx",
+		"password": "password"
+	},
+	"httpAuth": {
+		"github": "githubauth",
+		"kerberos": "kerberosauth"
+	},
+	"steamAPIKey": "steamAPIKey",
+	"libraries": [
+		{
+			"library": "./servers/index.js",
+			"data": {
+				"channel": "634573491185778688",
+				"gameServers": [
+					[ "va1.pluto.gg", 27015 ]
+				]
+			}
+		}
+	]
 }
