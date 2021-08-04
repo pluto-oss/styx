@@ -1,4 +1,4 @@
-import FakeClient from "../a2s/index.js";
+import FakeClient from "./a2s.js";
 import {MessageEmbed} from "discord.js";
 
 export default class Updater {

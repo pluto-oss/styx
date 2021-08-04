@@ -1,11 +1,9 @@
 import {Client, MessageEmbed} from "discord.js";
 import {readdir} from "fs/promises";
-import {DateTime} from "luxon";
 
 import request from "request";
 import moment from "moment";
 import express from "express";
-import bdy from "body-parser";
 import basicAuth from "express-basic-auth";
 
 export default class Bot {
@@ -72,74 +70,49 @@ export default class Bot {
 		);`);
 
 		this.limiter = {};
-
 		this.commandList = {};
 
-		this.initAPI();
+		this.setup().then(() => {
+		});
 	}
 
 	async guild() {
-		return await this.client.guilds.fetch("595542444737822730");
+		return await this.client.guilds.fetch(config.discord.guild);
 	}
 
-	async initAPI() {
+	async setup() {
 		const files = await readdir("./cmds");
 		for (let file of files) {
 			let lib = await import(`./cmds/${file}`);
 			this.commandList[file.substr(0, file.length - 3)] = lib.default;
 		}
 
+		await this.initializeHTTP();
+	}
+
+	async initializeHTTP() {
 		this.app = express();
-
-		this.app.use(bdy.urlencoded({ extended: false }));
-		this.app.use(bdy.json());
-
-		this.app.listen(3000, "0.0.0.0", () => console.log("Server started on Port 3000"));
-
 		const priv_router = express.Router();
 		priv_router.use(basicAuth({
 			users: config.httpAuth
 		}));
 
+		this.app.use(express.urlencoded({ extended: false }));
+		this.app.use(express.json());
+		this.app.use("/", priv_router);
+		this.app.post(`/errors/lua/${config.luaErrors.secret}`, this.errorsMessage.bind(this));
+
 		priv_router.post("/requests/github", this.githubRequest.bind(this));
 		priv_router.post("/requests/deploybot", this.deploymentHook.bind(this));
-
 		priv_router.post("/api/discord/:channel", this.discordMessage.bind(this));
-
-		priv_router.post("/sync/:user", this.syncUser.bind(this));
-
+		// forums are gone!
+		// priv_router.post("/sync/:user", this.syncUser.bind(this));
 		priv_router.get("*", (req, res) => {
-			console.log("GET");
 			res.redirect("https://pluto.gg");
 		});
 
-		this.app.post(`/errors/lua/${config.luaErrorsSecret}`, async (req, res) => {
-			if (!req.body) {
-				return;
-			}
-
-			const channel = await this.client.channels.fetch("620024525849100321");
-
-			let error = req.body;
-
-
-			channel.send(new MessageEmbed({
-				color: error.realm == "server" ? 0xeb4034 : 0x34c0eb,
-				title: `${error.realm} error`,
-				footer: {
-					text: `${error.gamemode} | v${error.gmv} | ${error.os} | ${error.ds == "true" ? "dedicated" : "not dedicated"}`
-				},
-				fields: [
-					{
-						name: error.error,
-						value: error.stack
-					}
-				]
-			}));
-		});
 
 		let cache = Object.create(null);
-
 		this.app.get("/pluto/emojis/:emoji", async (req, res) => {
 			const guild = await this.guild();
 			let emoji = await guild.emojis.cache.get(req.params.emoji.toString());
@@ -172,12 +145,13 @@ export default class Bot {
 		this.app.get("/servers", async (req, res) => {
 			res.status(200).send(JSON.stringify([this.serverData]));
 		});
-		this.app.use("/", priv_router);
+
+		this.app.listen(3000, "127.0.0.1", () => console.log("HTTP server started on 127.0.0.1:3000"));
 	}
 
 	hasPermission(user, perm) {
 		return new Promise((res, rej) => {
-			if (user.id === this.owner || user.id === "222188163790143489") {
+			if (config && config.discord && config.discord.owners && config.discord.owners.indexOf(user.id) !== -1) {
 				res(true);
 				return;
 			}
@@ -197,8 +171,7 @@ export default class Bot {
 
 				res(results.length > 0);
 			});
-
-		})
+		});
 	}
 
 	onmemberjoin(member) {
@@ -274,7 +247,7 @@ export default class Bot {
 			);
 		}*/
 
-		if (msg.content.toLowerCase().indexOf("styx ") === 0)
+		if (msg.content.toLowerCase().indexOf(config.botName + " ") === 0)
 			this.runCommand(msg).catch(console.error);
 	}
 
@@ -317,7 +290,7 @@ export default class Bot {
 
 		let text = msg.content;
 
-		let cur_idx = this.skipWhitespace(text, 5);
+		let cur_idx = this.skipWhitespace(text, config.botName.length + 1);
 		let start = cur_idx;
 
 		let cmd;
@@ -343,7 +316,7 @@ export default class Bot {
 			return;
 		}
 
-		if (!await this.hasPermission(msg.guild.members.cache.get(msg.author.id), cmd)) {
+		if (!await this.hasPermission(await msg.guild.members.fetch(msg.author.id), cmd)) {
 			msg.channel.send("You don't have permission.");
 			this.limiter[msg.author.id] = Date.now() + 1000 * 5;
 			return;
@@ -398,79 +371,7 @@ export default class Bot {
 			}
 		}
 
-		if (this.serverUpdater) {
-			return;
-		}
-
-		this.client.channels.fetch("846573820550578187").then(async channel => {			
-			let early_msg = await channel.messages.fetch("846877728857653268");
-			
-			let early_collector = early_msg.createReactionCollector(() => {
-				return true;
-			});
-
-			early_collector.options.dispose = true;
-
-			early_collector.on("collect", async (react, user) => {
-				let gmember = await channel.guild.members.fetch(user.id);
-				if (gmember.roles.cache.get("846572582702546984")) {
-					return;
-				}
-				gmember.roles.add("846572582702546984");
-			});
-			early_collector.on("remove", async (react, user) => {
-				let gmember = await channel.guild.members.fetch(user.id);
-				if (gmember.roles.cache.get("846572582702546984")) {
-					gmember.roles.remove("846572582702546984");
-				}
-			});
-			early_collector.on("end", () => console.log("end?"));
-			
-			let late_msg = await channel.messages.fetch("846877746839683083");
-			
-			let late_collector = late_msg.createReactionCollector(() => {
-				return true;
-			});
-
-			late_collector.options.dispose = true;
-			
-			late_collector.on("collect", async (react, user) => {
-				let gmember = await channel.guild.members.fetch(user.id);
-				if (gmember.roles.cache.get("846572762575536138")) {
-					return;
-				}
-				gmember.roles.add("846572762575536138");
-			});
-			late_collector.on("remove", async (react, user) => {
-				let gmember = await channel.guild.members.fetch(user.id);
-				if (gmember.roles.cache.get("846572762575536138")) {
-					gmember.roles.remove("846572762575536138");
-				}
-			});
-			late_collector.on("end", () => console.log("end?"));
-			
-			let other_msg = await channel.messages.fetch("846877778171527169");
-			let other_joined = await this.client.channels.fetch("611449167994159134");
-			
-			let other_collector = other_msg.createReactionCollector(() => {
-				return true;
-			});
-			other_collector.on("collect", async (react, user) => {
-				let gmember = await channel.guild.members.fetch(user.id);
-				if (gmember.roles.cache.get("799239379658080266")) {
-					return;
-				}
-				gmember.roles.add("799239379658080266");
-				other_joined.send(`<@${user.id}> has joined [account created at ${Math.floor(DateTime.fromJSDate(user.createdAt).diffNow().negate().as("days"))} days ago, joined ${Math.floor(DateTime.fromJSDate(gmember.joinedAt).diffNow().negate().as("days"))} days ago]`)
-			});
-			other_collector.on("remove", async (react, user) => {
-				let gmember = await channel.guild.members.fetch(user.id);
-				if (gmember.roles.cache.get("799239379658080266")) {
-					gmember.roles.remove("799239379658080266");
-				}
-			});
-			other_collector.on("end", () => console.log("end?"));
-		});
+		// TODO: turn into library
 
 		/*
 		let guild = await this.client.guilds.fetch("595542444737822730");
@@ -488,10 +389,6 @@ export default class Bot {
 	login(key) {
 		this.client.login(key);
 		console.log("logged in")
-	}
-
-	setOwner(owner) {
-		this.owner = owner;
 	}
 
 	setJail(role) {
@@ -515,7 +412,7 @@ export default class Bot {
 			.setTimestamp());*/
 	}
 
-	githubRequest(req, res) {
+	async githubRequest(req, res) {
 		res.status(200).send("Success");
 		const type = req.header("X-GitHub-Event");
 		if (type === "push") {
@@ -540,11 +437,11 @@ export default class Bot {
 				}
 			});
 			emb.setDescription(commits);
-			this.client.guilds.cache.get("595542444737822730").channels.cache.get("609026158566309898").send(emb);
+			(await (await this.guild()).channels.fetch(config.discord.github)).send(emb);
 		}
 	}
 
-	deploymentHook(req, res) {
+	async deploymentHook(req, res) {
 		res.status(200).send("Success");
 		console.log("========== DeployBot Message ==========");
 		console.log(req.body);
@@ -558,7 +455,8 @@ export default class Bot {
 		emb.setTitle("Deployment Complete");
 		emb.setDescription(`${body["repository"]}/${body["environment"]} deployed to ${body["server"]}\n${body["comment"]} - ${body["author_name"]}`);
 		emb.setTimestamp();
-		this.client.guilds.cache.get("595542444737822730").channels.cache.get("634572018729222164").send(emb);
+
+		(await (await this.guild()).channels.fetch(config.discord.deploybot)).send(emb);
 	}
 
 	async discordMessage(req, res) {
@@ -577,7 +475,32 @@ export default class Bot {
 		}
 	}
 
+	async errorsMessage(req, res) {
+		if (!req.body) {
+			return;
+		}
+
+		const channel = await this.client.channels.fetch(config.luaErrors.channel);
+
+		let error = req.body;
+
+		channel.send(new MessageEmbed({
+			color: error.realm == "server" ? 0xeb4034 : 0x34c0eb,
+			title: `${error.realm} error`,
+			footer: {
+				text: `${error.gamemode} | v${error.gmv} | ${error.os} | ${error.ds == "true" ? "dedicated" : "not dedicated"}`
+			},
+			fields: [
+				{
+					name: error.error,
+					value: error.stack
+				}
+			]
+		}));
+	}
+
 	async syncUser(req, res) {
+		/*
 		let guild = await this.guild();
 		const forumsrole = await guild.roles.fetch("661013927940980749");
 		let userid = req.params.user.toString();
@@ -608,12 +531,12 @@ export default class Bot {
 		} else {
 			res.status(400).send("bad user");
 		}
+		*/
 	}
 
 	async updateNitros() {
 		console.log("NITRO UPDATE STARTED");
 		const pluto = await this.guild();
-		const boost = "608829202258591775";
 
 		console.log("REMOVING");
 		this.db.query("SELECT CAST(discordid as CHAR) as discordid FROM nitro WHERE boosting_since IS NOT NULL;", async (err, nitros, fields) => {
@@ -634,7 +557,7 @@ export default class Bot {
 			}
 
 			console.log("ADDING");
-			let role = await pluto.roles.fetch(boost)
+			let role = await pluto.roles.fetch(config.discord.nitroRole);
 			for (let member of role.members.array()) {
 				let ts = moment(member.premiumSinceTimestamp).format("YYYY-MM-DD HH:mm:ss");
 				this.db.query("INSERT INTO nitro (discordid, first_boost, boosting_since) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE boosting_since = VALUE (boosting_since);",

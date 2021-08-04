@@ -1,8 +1,9 @@
 {
+	"botName": "styx",
 	"discord": {
 		"key": "discord_apikey",
 		"owners": ["150809682318065664"],
-		"guild": "290669947267317762",
+		"guild": "595542444737822730",
 		"channels": {
 			"jail": "609203171042131976",
 			"logs": "626992813623476255"
@@ -19,9 +20,13 @@
 		"kerberos": "kerberosauth"
 	},
 	"steamAPIKey": "steamAPIKey",
+	"luaErrors": {
+		"secret": "secret",
+		"channel": "620024525849100321"
+	},
 	"libraries": [
 		{
-			"library": "./servers/index.js",
+			"library": "./servers.js",
 			"data": {
 				"channel": "634573491185778688",
 				"gameServers": [

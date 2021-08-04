@@ -1,4 +1,4 @@
-import Updater from "../libs/servers/index.js";
+import Updater from "../libs/servers.js";
 
 export default class JSCommand {
     constructor(bot, msg, args) {
@@ -12,6 +12,6 @@ export default class JSCommand {
     }
 
     static help() {
-        return "Starts the updater";
+        return "Creates a new server updater message";
     }
 }
