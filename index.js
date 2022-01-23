@@ -13,6 +13,7 @@ global.config = JSON.parse(
 const pools = mysql.createPool({
 	host: config.mysql.host,
 	user: config.mysql.user,
+	port: config.mysql.port,
 	password: config.mysql.password,
 	database: config.mysql.database,
 	connectionLimit: 10,
