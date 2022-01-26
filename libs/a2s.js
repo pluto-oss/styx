@@ -15,13 +15,19 @@ class PacketHelper {
 }
 
 class A2S_Info {
-	constructor() { }
+	constructor(challenge) {
+		this.challenge = challenge;
+	}
 
 	toBuffer() {
 		const data = "TSource Engine Query";
-		let buf = Buffer.alloc(data.length + 5);
+		let buf = Buffer.alloc(data.length + 5 + (this.challenge ? 4 : 0));
 		buf.writeUInt32LE(0xFFFFFFFF, 0);
 		buf.write(data, 4);
+
+		if (this.challenge) {
+			buf.writeUInt32LE(this.challenge, buf.length - 4);
+		}
 
 		return buf;
 	}
@@ -77,8 +83,7 @@ class C2S_Connect {
 
 class A2S_GetChallengeResponse {
 	constructor(buf) {
-		this.challenge = buf.readUInt32LE(9);
-		this.secret = buf.readUInt32LE(13);
+		this.challenge = buf.readUInt32LE(5);
 	}
 }
 
@@ -222,7 +227,7 @@ export default class FakeClient extends events.EventEmitter {
 			}
 		}
 		catch (e) {
-			
+			console.error(e);
 		}
 	}
 
@@ -252,18 +257,36 @@ export default class FakeClient extends events.EventEmitter {
 
 	getInfo(timeout = 10000) {
 		return new Promise(async (res, rej) => {
+			this.signonState = "getinfo";
 			await this.send(new A2S_Info().toBuffer());
 			let start = Date.now();
 
-			let tm = setTimeout(() => {
-				rej(new Error("timeout"));
-			}, timeout);
-			this.once("info", info => {
+			let tmReject, infoListener, challengeListener;
+
+			let cleanup = () => {
+				clearTimeout(tmReject);
+				this.removeListener("info", infoListener);
+				this.removeListener("challenge", challengeListener);
+			}
+			infoListener = info => {
 				info.ping = (Date.now() - start) / 1000;
 				this.lastInfo = info;
+				cleanup();
 				res(info);
-				clearTimeout(tm);
-			});
+			};
+			
+			challengeListener = async chal => {
+				await this.send(new A2S_Info(chal.challenge).toBuffer());
+				start = Date.now();
+			};
+
+			tmReject = setTimeout(() => {
+				cleanup();
+				rej(new Error("timeout"));
+			}, timeout);
+
+			this.once("info", infoListener);
+			this.once("challenge", challengeListener);
 		});
 	}
 
@@ -320,7 +343,6 @@ export default class FakeClient extends events.EventEmitter {
 
 sock.bind(async () => {
 	sock.on("message", (msg, rinfo) => {
-		console.log(msg, rinfo);
 		let FromAddress = Distributor[rinfo.address];
 		if (!FromAddress) {
 			console.log(`unknown address for address: ${rinfo.address}:${rinfo.port}`);
