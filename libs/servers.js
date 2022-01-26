@@ -21,11 +21,10 @@ export default class Updater {
 
 			this.clients = [];
 
-			for (let [address, port] of this.gameServers) {
-				console.log(address, port);
+			for (let [address, port, localAddress] of this.gameServers) {
 				let cl;
 				try {
-					cl = await FakeClient.fromAddress(address, port, 3000);
+					cl = await FakeClient.fromAddress(localAddress ? localAddress : address, port, 3000);
 				}
 				catch (e) {
 					console.error(e);
