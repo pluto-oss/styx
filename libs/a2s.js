@@ -320,6 +320,7 @@ export default class FakeClient extends events.EventEmitter {
 
 sock.bind(async () => {
 	sock.on("message", (msg, rinfo) => {
+		console.log(msg, rinfo);
 		let FromAddress = Distributor[rinfo.address];
 		if (!FromAddress) {
 			console.log(`unknown address for address: ${rinfo.address}:${rinfo.port}`);
@@ -333,4 +334,4 @@ sock.bind(async () => {
 
 		FromAddress[rinfo.port].emit("message", msg, rinfo);
 	});
-})
+});
