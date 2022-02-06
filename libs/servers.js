@@ -86,7 +86,7 @@ export default class Updater {
 						    throw err;
 					    }
 
-						if (ret[0].ago >= min_time) {
+						if (ret[0].ago >= min_time || !ret[0]) {
 							let ping_channel = await this.bot.client.channels.fetch("846886760386658305");
 							ping_channel.send("Hey <@&846572762575536138>, we've hit " + min_players + " players on the server! In five minutes, a random round will be queued!")
 							this.bot.db.query("INSERT INTO role_pings (ping, last) VALUES ('late_joiners', NOW()) ON DUPLICATE KEY UPDATE last = NOW();");
